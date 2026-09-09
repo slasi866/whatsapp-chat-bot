@@ -25,7 +25,7 @@ directory = "./public"
 [[d1_databases]]
 binding = "DB"
 database_name = "pesat-wa-bot"
-database_id = "39f0504c-6f7c-46aa-8d62-558e71006f3c"
+database_id = "641bbe88-e76a-4391-845b-bb3b73dc919d"
 migrations_dir = "migrations"
 
 # --- Vectorize: per-tenant knowledge base embeddings ----------------------
@@ -43,7 +43,7 @@ binding = "AI"
 # npx wrangler kv namespace create CACHE
 [[kv_namespaces]]
 binding = "CACHE"
-id = "418ab728e3b84a3cb7fc55218cd32c42"
+id = "b6013ab36ea047dcbe7a01790f20c895"
 
 # Original document text is stored in D1 rather than R2: R2 requires a
 # payment method on the account, and this platform is pinned to the
