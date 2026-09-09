@@ -1,0 +1,132 @@
+/**
+ * Design tokens. Every value used anywhere else in the CSS comes from here,
+ * so a rebrand is a change to this file only.
+ *
+ * The full light palette is defined on bare :root. Dark mode redefines only
+ * the colour tokens, so no component ever needs a theme-specific rule.
+ */
+
+:root {
+  /* Neutrals */
+  --c-bg: #f5f7f8;
+  --c-surface: #ffffff;
+  --c-surface-2: #f0f3f5;
+  --c-surface-3: #e6eaee;
+  --c-border: #dce2e7;
+  --c-border-strong: #bcc7d0;
+  --c-text: #121a20;
+  --c-text-2: #57646f;
+  --c-text-3: #87949f;
+
+  /* Brand */
+  --c-brand: #0d7d72;
+  --c-brand-hover: #0a655c;
+  --c-brand-ink: #ffffff;
+  --c-brand-soft: #dcf0ed;
+  --c-brand-ring: rgba(13, 125, 114, 0.35);
+
+  /* Status */
+  --c-success: #1a7f4b;
+  --c-success-soft: #dcf3e6;
+  --c-warn: #8a5a00;
+  --c-warn-soft: #fbeed3;
+  --c-danger: #b3242c;
+  --c-danger-soft: #fbe4e5;
+  --c-info: #1f5f9e;
+  --c-info-soft: #e0ecf8;
+
+  /* Chat surfaces */
+  --c-chat-bg: #eceff1;
+  --c-bubble-in: #ffffff;
+  --c-bubble-out: #d7f6cd;
+
+  --c-overlay: rgba(12, 20, 25, 0.44);
+
+  /* Spacing scale */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 44px;
+
+  /* Radii */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-full: 999px;
+
+  /* Elevation */
+  --sh-1: 0 1px 2px rgba(18, 26, 32, 0.06);
+  --sh-2: 0 1px 3px rgba(18, 26, 32, 0.08), 0 6px 16px rgba(18, 26, 32, 0.06);
+  --sh-3: 0 8px 28px rgba(18, 26, 32, 0.16);
+
+  /* Typography */
+  --f-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --t-xs: 11px;
+  --t-sm: 12px;
+  --t-md: 13.5px;
+  --t-lg: 15px;
+  --t-xl: 19px;
+  --t-2xl: 25px;
+
+  /* Layout */
+  --w-sidebar: 232px;
+  --h-topbar: 56px;
+  --w-conv-list: 300px;
+
+  /* Motion */
+  --dur-fast: 110ms;
+  --dur: 200ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+
+  /* Stacking */
+  --z-sidebar: 30;
+  --z-topbar: 40;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: #0d1214;
+    --c-surface: #151e21;
+    --c-surface-2: #1c272b;
+    --c-surface-3: #243135;
+    --c-border: #2a373b;
+    --c-border-strong: #3d4d53;
+    --c-text: #e6eef0;
+    --c-text-2: #9aabb1;
+    --c-text-3: #74858c;
+
+    --c-brand: #2fd0bd;
+    --c-brand-hover: #4fdccb;
+    --c-brand-ink: #04241f;
+    --c-brand-soft: #10322e;
+    --c-brand-ring: rgba(47, 208, 189, 0.4);
+
+    --c-success: #4ade80;
+    --c-success-soft: #10301f;
+    --c-warn: #fbbf24;
+    --c-warn-soft: #322610;
+    --c-danger: #fb7185;
+    --c-danger-soft: #35171c;
+    --c-info: #7dbcf5;
+    --c-info-soft: #12283a;
+
+    --c-chat-bg: #0f1719;
+    --c-bubble-in: #1c272b;
+    --c-bubble-out: #10402c;
+
+    --c-overlay: rgba(0, 0, 0, 0.62);
+
+    --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --sh-2: 0 1px 3px rgba(0, 0, 0, 0.45), 0 6px 16px rgba(0, 0, 0, 0.32);
+    --sh-3: 0 8px 28px rgba(0, 0, 0, 0.5);
+  }
+}

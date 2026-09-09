@@ -1,0 +1,226 @@
+/* Application shell: top bar, sidebar navigation, and the content column. */
+
+.shell {
+  display: grid;
+  grid-template-rows: var(--h-topbar) 1fr;
+  grid-template-columns: var(--w-sidebar) 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar content";
+  min-height: 100vh;
+}
+
+/* --- Top bar ----------------------------------------------------------- */
+
+.topbar {
+  grid-area: topbar;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 0 var(--s-4);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.logo-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: var(--r-sm);
+  background: var(--c-brand);
+  color: var(--c-brand-ink);
+  font-weight: 750;
+  font-size: var(--t-md);
+  letter-spacing: -0.02em;
+}
+
+.logo-text {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+/* --- Sidebar ----------------------------------------------------------- */
+
+.sidebar {
+  grid-area: sidebar;
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  padding: var(--s-3) var(--s-2);
+  overflow-y: auto;
+  position: sticky;
+  top: var(--h-topbar);
+  height: calc(100vh - var(--h-topbar));
+  z-index: var(--z-sidebar);
+}
+
+.nav-group + .nav-group {
+  margin-top: var(--s-4);
+}
+
+.nav-label {
+  padding: var(--s-1) var(--s-3) var(--s-2);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-text-3);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-sm);
+  color: var(--c-text-2);
+  font-weight: 550;
+  transition: background var(--dur-fast) var(--ease);
+}
+.nav-item:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+  text-decoration: none;
+}
+.nav-item[aria-current="page"] {
+  background: var(--c-brand-soft);
+  color: var(--c-brand);
+  font-weight: 700;
+}
+.nav-item .icon {
+  flex: 0 0 16px;
+}
+
+.nav-tenant {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-2);
+  min-width: 0;
+}
+
+/* --- Content ----------------------------------------------------------- */
+
+.content {
+  grid-area: content;
+  padding: var(--s-5);
+  min-width: 0;
+}
+
+.content.flush {
+  padding: 0;
+  height: calc(100vh - var(--h-topbar));
+  overflow: hidden;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+.page-head .actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+.page-head h1 + p {
+  margin-top: var(--s-1);
+  color: var(--c-text-2);
+  font-size: var(--t-md);
+}
+
+.grid {
+  display: grid;
+  gap: var(--s-4);
+}
+.grid.cols {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.grid.form {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--s-4);
+}
+
+.section-title {
+  margin: var(--s-6) 0 var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+/* --- Mobile drawer ----------------------------------------------------- */
+
+.menu-btn {
+  display: none;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--c-overlay);
+  z-index: var(--z-overlay);
+  animation: fade var(--dur) var(--ease);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "topbar"
+      "content";
+  }
+
+  .menu-btn {
+    display: inline-flex;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: var(--h-topbar);
+    left: 0;
+    width: min(280px, 82vw);
+    border-right: 1px solid var(--c-border);
+    box-shadow: var(--sh-3);
+    transform: translateX(-102%);
+    transition: transform var(--dur) var(--ease);
+    z-index: var(--z-overlay);
+  }
+  .sidebar.open {
+    transform: none;
+  }
+
+  .content {
+    padding: var(--s-4);
+  }
+  .content.flush {
+    height: auto;
+    overflow: visible;
+  }
+
+  .logo-text {
+    display: none;
+  }
+}

@@ -223,21 +223,75 @@ Isi panel tenant:
 
 | Halaman | Fungsi |
 |---|---|
-| Inbox | Daftar kontak dan transkrip gaya WhatsApp. Tombol ambil alih membuat bot diam, lalu agent membalas dari kolom pesan. Refresh otomatis, thread aktif tiap 5 detik dan daftar tiap 12 detik. |
-| Knowledge base | Tambah dokumen, lihat jumlah chunk, hapus, dan tes retrieval untuk melihat passage yang akan dibaca bot. |
-| Lead | Tabel lead yang ditangkap bot. |
-| Pemakaian | Kuota terpakai, token input dan output sungguhan, rincian 30 hari. |
-| Pengaturan | Persona, sapaan, pesan cadangan, bahasa, model, nomor eskalasi, dan kredensial WhatsApp. |
+| Inbox | Transkrip gaya WhatsApp dengan pemisah tanggal dan gelembung yang mengelompok. Cari kontak, filter status, ambil alih, lalu balas. Thread aktif disegarkan tiap 5 detik dan daftar tiap 12 detik. |
+| Knowledge base | Tambah dokumen dengan penghitung karakter, lihat jumlah chunk, hapus, dan tes retrieval untuk melihat passage beserta skornya. |
+| Lead | Tabel lead yang ditangkap bot, bisa dicari. |
+| Pemakaian | Kuota terpakai, token sungguhan, rata-rata token per pesan, rincian 30 hari. |
+| Pengaturan | Persona, sapaan, pesan cadangan, bahasa, model, nomor eskalasi, kredensial WhatsApp. Admin juga melihat paket, kuota, status, rotasi key, dan hapus tenant. |
 
-Composer akan otomatis terkunci kalau percakapan sudah lewat jendela 24 jam
-Meta, dengan penjelasan bahwa yang dibutuhkan adalah template.
+Detail UX yang berpengaruh saat dipakai agent sungguhan:
+
+- Composer terkunci sendiri kalau percakapan sudah lewat jendela 24 jam Meta,
+  dan menjelaskan bahwa yang dibutuhkan template. Selama masih di dalam
+  jendela, sisa waktunya ditampilkan di header percakapan.
+- Penyegaran latar tidak menghapus draft yang sedang ditulis, tidak mencuri
+  fokus, dan tidak melompatkan posisi scroll kecuali agent memang sedang di
+  dasar transkrip.
+- Enter mengirim, Shift dan Enter membuat baris baru.
+- Selama bot masih memegang percakapan, ada peringatan agar agent mengambil
+  alih dulu supaya customer tidak menerima dua jawaban.
+- Tindakan merusak memakai dialog yang menyebut akibatnya, bukan konfirmasi
+  bawaan browser. API key baru muncul di dialog dengan tombol salin, karena
+  key itu tidak bisa dilihat lagi setelah ditutup.
+- Setiap halaman punya skeleton saat memuat dan empty state yang menyebutkan
+  langkah berikutnya, bukan panel kosong.
+- Tema mengikuti sistem, terang dan gelap. Navigasi jadi drawer di layar
+  sempit, dan focus ring keyboard konsisten di semua kontrol.
 
 Halaman HTML-nya sendiri bisa diakses siapa saja, tetapi tanpa API key yang
-sah tidak ada data yang bisa dibaca. Semua teks dari customer di-escape
-sebelum dirender, karena isi pesan adalah input yang tidak dipercaya.
+sah tidak ada data yang bisa dibaca.
 
-Tidak ada build step. Tiga file di `public/` adalah aplikasinya, jadi tidak ada
-framework yang perlu diikuti versinya.
+### Struktur frontend
+
+```
+public/
+  index.html            hanya shell, seluruh UI dibangun router
+  css/
+    tokens.css          semua warna, spasi, radius, shadow, motion
+    base.css            reset, tipografi, focus ring, utilitas
+    layout.css          app shell, topbar, sidebar, drawer mobile
+    components.css      button, field, card, table, badge, modal, toast, skeleton
+    views.css           yang khusus satu halaman saja
+  js/
+    main.js             bootstrap, guard peran, dispatch route
+    core/
+      dom.js            pembangun elemen
+      api.js            klien HTTP dan daftar endpoint
+      store.js          state sesi dan tampilan
+      router.js         hash router plus teardown polling
+      format.js         tanggal, angka, jendela 24 jam, warna avatar
+      toast.js          notifikasi
+      modal.js          dialog dengan focus trap
+    components/         icon, ui, table, feedback, avatar, shell
+    views/              login, tenants, tenant-new, inbox, knowledge,
+                        leads, usage, settings
+```
+
+Aturannya satu arah. `views/` memakai `components/` dan `core/`, `components/`
+memakai `core/`, dan `core/` tidak memakai apa pun. Jadi tidak ada import
+melingkar.
+
+Tiga hal yang perlu diketahui sebelum mengubahnya:
+
+- **Tidak ada build step.** Native ES modules, jadi tidak ada framework yang
+  perlu diikuti versinya. Kalau nanti pindah ke Vite plus Preact, batas
+  antarlapisannya sudah sesuai.
+- **Nilai desain hanya ada di `tokens.css`.** Ganti merek berarti mengubah satu
+  file, bukan menyisir seluruh CSS.
+- **Tidak ada string HTML.** `core/dom.js` membangun node asli dan teks selalu
+  lewat `createTextNode`, jadi isi pesan customer tidak mungkin diperlakukan
+  sebagai markup. Kelas bug XSS hilang karena arsitekturnya, bukan karena
+  disiplin escape di tiap interpolasi.
 
 ## Perilaku bot
 
