@@ -127,17 +127,36 @@ token WhatsApp tenant tidak bisa didekripsi lagi dan harus diinput ulang.
 
 Untuk development lokal, salin `.dev.vars.example` menjadi `.dev.vars`.
 
-### 5. Deploy
+### 5. Daftarkan subdomain workers.dev
+
+Sekali per akun, dan tanpa ini Worker terpasang tapi tidak punya alamat
+publik. Buka Workers & Pages di dashboard, lalu klik **Change** di sebelah
+**Your subdomain**:
+
+```
+https://dash.cloudflare.com/<account-id>/workers-and-pages
+```
+
+Pesan error wrangler masih menunjuk `/workers/onboarding`, dan path itu
+sekarang 404. Abaikan, pakai tautan di atas.
+
+### 6. Deploy
 
 ```bash
 npm run deploy
 ```
 
-### 6. Hubungkan Meta webhook
+Deployment yang sedang berjalan:
+
+```
+https://pesat-wa-bot.pesat-wa-bot1.workers.dev
+```
+
+### 7. Hubungkan Meta webhook
 
 Di Meta App Dashboard, WhatsApp > Configuration:
 
-- Callback URL: `https://pesat-wa-bot.<subdomain>.workers.dev/webhook/whatsapp`
+- Callback URL: `https://pesat-wa-bot.pesat-wa-bot1.workers.dev/webhook/whatsapp`
 - Verify token: nilai `META_VERIFY_TOKEN` di langkah 4
 - Subscribe ke field **messages**
 
@@ -222,7 +241,7 @@ curl -X POST https://<worker>/api/tenants/<tenantId>/search \
 ## Dashboard
 
 Buka root Worker di browser, misalnya
-`https://pesat-wa-bot.<subdomain>.workers.dev/`. Dashboard disajikan sebagai
+`https://pesat-wa-bot.pesat-wa-bot1.workers.dev/`. Dashboard disajikan sebagai
 static asset oleh Worker yang sama, jadi satu origin dengan `/api` dan tidak
 perlu hosting maupun CORS.
 
