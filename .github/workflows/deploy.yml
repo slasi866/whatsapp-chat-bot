@@ -19,10 +19,33 @@ jobs:
       - run: npm run typecheck
       - run: npm test
 
+  # A job-level `if` cannot read the secrets context, so the presence of the
+  # deploy credential is resolved in a step and passed on as an output. Without
+  # this the deploy job fails on every push until the token is configured,
+  # which turns a missing setup step into a stream of failure notifications.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.token.outputs.configured }}
+    steps:
+      - id: token
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -n "$CF_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy skipped::Set the repository secret CLOUDFLARE_API_TOKEN to enable automatic deploys."
+          fi
+
   deploy:
-    # Only main deploys; pull requests stop at the check job.
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: check
+    needs: [check, gate]
+    # Only main deploys, and only once the Cloudflare token exists.
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      needs.gate.outputs.configured == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,8 +54,8 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      # Repository secret CLOUDFLARE_API_TOKEN needs Workers Scripts:Edit,
-      # D1:Edit, Queues:Edit, Vectorize:Edit, and Workers R2 Storage:Edit.
+      # CLOUDFLARE_API_TOKEN needs Workers Scripts:Edit, D1:Edit, Queues:Edit,
+      # and Vectorize:Edit. R2 is not used by this project.
       - name: Apply D1 migrations
         uses: cloudflare/wrangler-action@v3
         with:
