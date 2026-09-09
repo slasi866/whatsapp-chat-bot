@@ -73,8 +73,11 @@ export async function appendMessage(
 ): Promise<void> {
   const at = nowSeconds();
   const statements = [
+    // OR IGNORE against the unique index on wa_message_id, so a retried queue
+    // job re-storing the same inbound message is a no-op rather than a
+    // duplicate turn in the transcript.
     env.DB.prepare(
-      `INSERT INTO messages
+      `INSERT OR IGNORE INTO messages
          (id, conversation_id, tenant_id, role, content, wa_message_id, input_tokens, output_tokens, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     ).bind(
@@ -139,10 +142,15 @@ export async function claimMessage(
   waMessageId: string,
   tenantId: string,
 ): Promise<boolean> {
-  const result = await env.DB.prepare(
-    'INSERT OR IGNORE INTO processed_messages (wa_message_id, tenant_id, created_at) VALUES (?, ?, ?)',
+  // RETURNING yields a row only when the insert actually happened, which is
+  // the exact signal needed. meta.changes was not: it reported a write for an
+  // ignored conflict too, so every Meta retry looked like a fresh message and
+  // the customer was answered twice.
+  const inserted = await env.DB.prepare(
+    `INSERT OR IGNORE INTO processed_messages (wa_message_id, tenant_id, created_at)
+     VALUES (?, ?, ?) RETURNING wa_message_id`,
   )
     .bind(waMessageId, tenantId, nowSeconds())
-    .run();
-  return (result.meta.changes ?? 0) > 0;
+    .first<{ wa_message_id: string }>();
+  return inserted !== null;
 }

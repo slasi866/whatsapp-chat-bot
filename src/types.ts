@@ -11,6 +11,8 @@ export interface Env {
   LLM_BASE_URL: string;
   DEFAULT_MODEL: string;
   EMBEDDING_MODEL: string;
+  MESSAGE_RETENTION_DAYS: string;
+  DEDUPE_RETENTION_DAYS: string;
 
   // Secrets
   LLM_API_KEY: string;

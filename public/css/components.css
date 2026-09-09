@@ -662,3 +662,21 @@ td.actions {
   background: var(--c-success);
   color: #fff;
 }
+
+/* Table cell that opens a detail view. Reads as a link, sized as a cell. */
+.link-cell {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-text);
+  font: inherit;
+  font-weight: 640;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px dashed var(--c-border-strong);
+  transition: color var(--dur-1) var(--ease-out);
+}
+.link-cell:hover {
+  color: var(--c-brand);
+  border-bottom-color: var(--c-brand);
+}

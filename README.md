@@ -489,3 +489,25 @@ Daftar jujur, supaya tidak dijanjikan ke client sebelum ada:
 - Belum ada tes integrasi end to end, baru unit test untuk chunker dan pemecah
   pesan WhatsApp.
 - `business_hours` tersimpan di database tetapi belum dipakai logika apa pun.
+
+## Operasional
+
+**Retensi.** Cron `0 3 * * *` menghapus pesan lebih tua dari
+`MESSAGE_RETENTION_DAYS` (default 90) dan baris deduplikasi lebih tua dari
+`DEDUPE_RETENTION_DAYS` (default 3). Keduanya ditulis setiap pesan masuk dan
+dulu tidak pernah dibersihkan, jadi hanya dua tabel itu yang tumbuh tanpa
+batas di D1 5 GB. Penghapusan dilakukan bertahap 2.000 baris.
+
+**Diagnosa provider.** `GET /api/diagnostics/llm` (khusus admin) memanggil
+model dengan tool dan melaporkan apakah `tool_calls` benar-benar kembali.
+Eskalasi ke agent dan penangkapan lead bergantung pada itu, dan router yang
+mengabaikan tool akan mematikannya diam-diam. Tombolnya ada di halaman Daftar
+tenant.
+
+**Paginasi.** Daftar tenant, percakapan, pesan, dan lead menerima `limit` dan
+`offset`, dan mengembalikan `has_more` serta `next_offset`.
+
+> **`META_APP_SECRET` saat ini berisi nilai sementara** yang dipakai untuk
+> menguji jalur webhook end to end. Ganti dengan App Secret asli dari Meta App
+> Dashboard sebelum menghubungkan webhook, atau semua pesan masuk akan ditolak
+> 403 karena tanda tangannya tidak cocok.

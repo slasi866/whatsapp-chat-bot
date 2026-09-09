@@ -59,10 +59,21 @@ export const api = {
 // --- Endpoint wrappers ---------------------------------------------------
 // Named so a view never builds a URL by hand.
 
+/** Builds a ?limit=&offset= suffix, omitting it entirely when unpaged. */
+function pageQuery({ limit, offset } = {}, extra = '') {
+  const parts = [];
+  if (extra) parts.push(extra);
+  if (limit) parts.push(`limit=${limit}`);
+  if (offset) parts.push(`offset=${offset}`);
+  return parts.length ? `?${parts.join('&')}` : '';
+}
+
 export const endpoints = {
   me: () => api.get('/me'),
 
-  listTenants: () => api.get('/tenants'),
+  diagnoseLlm: (model) => api.get(`/diagnostics/llm${model ? `?model=${encodeURIComponent(model)}` : ''}`),
+
+  listTenants: (paging) => api.get(`/tenants${pageQuery(paging)}`),
   createTenant: (body) => api.post('/tenants', body),
   getTenant: (id) => api.get(`/tenants/${id}`),
   updateTenant: (id, body) => api.patch(`/tenants/${id}`, body),
@@ -70,14 +81,17 @@ export const endpoints = {
   deleteTenant: (id) => api.del(`/tenants/${id}`),
 
   listDocuments: (id) => api.get(`/tenants/${id}/documents`),
+  getDocument: (id, documentId) => api.get(`/tenants/${id}/documents/${documentId}`),
   createDocument: (id, body) => api.post(`/tenants/${id}/documents`, body),
   deleteDocument: (id, documentId) => api.del(`/tenants/${id}/documents/${documentId}`),
   search: (id, query) => api.post(`/tenants/${id}/search`, { query }),
 
-  listConversations: (id, status) =>
-    api.get(`/tenants/${id}/conversations${status ? `?status=${encodeURIComponent(status)}` : ''}`),
-  listMessages: (id, conversationId) =>
-    api.get(`/tenants/${id}/conversations/${conversationId}/messages`),
+  listConversations: (id, status, paging) =>
+    api.get(
+      `/tenants/${id}/conversations${pageQuery(paging, status ? `status=${encodeURIComponent(status)}` : '')}`,
+    ),
+  listMessages: (id, conversationId, paging) =>
+    api.get(`/tenants/${id}/conversations/${conversationId}/messages${pageQuery(paging)}`),
   takeover: (id, conversationId) =>
     api.post(`/tenants/${id}/conversations/${conversationId}/takeover`),
   release: (id, conversationId) =>
@@ -85,6 +99,6 @@ export const endpoints = {
   sendMessage: (id, conversationId, text) =>
     api.post(`/tenants/${id}/conversations/${conversationId}/send`, { text }),
 
-  listLeads: (id) => api.get(`/tenants/${id}/leads`),
+  listLeads: (id, paging) => api.get(`/tenants/${id}/leads${pageQuery(paging)}`),
   usage: (id) => api.get(`/tenants/${id}/usage`),
 };

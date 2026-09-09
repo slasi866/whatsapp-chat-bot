@@ -12,6 +12,7 @@ const COLUMNS = [
   { label: 'Pesan', align: 'right' },
   { label: 'Token input', align: 'right' },
   { label: 'Token output', align: 'right' },
+  { label: 'Token embedding', align: 'right' },
   { label: 'Token/pesan', align: 'right' },
 ];
 
@@ -78,6 +79,13 @@ export async function render() {
         format: fmtNumber,
         sub: 'dasar perhitungan biaya per balasan',
       }),
+      statTile({
+        label: 'Token embedding',
+        value: fmtNumber(usage.this_month.embedding_tokens),
+        count: usage.this_month.embedding_tokens,
+        format: fmtNumber,
+        sub: 'ingest dokumen dan pencarian, ditagih terpisah',
+      }),
     ),
     h('div', { class: 'section-title' }, h('h2', { text: 'Harian, 30 hari terakhir' })),
     usage.daily.length === 0
@@ -93,13 +101,14 @@ export async function render() {
             fmtNumber(day.messages),
             fmtNumber(day.input_tokens),
             fmtNumber(day.output_tokens),
+            fmtNumber(day.embedding_tokens),
             fmtNumber(day.messages ? Math.round(tokens / day.messages) : 0),
           ];
         }),
     h('p', {
       class: 'muted t-sm',
       style: { marginTop: '12px' },
-      text: 'Token di sini adalah angka yang dilaporkan provider, bukan perkiraan, jadi bisa dipakai langsung untuk menghitung biaya per balasan.',
+      text: 'Token input dan output adalah angka yang dilaporkan provider, jadi bisa dipakai langsung menghitung biaya per balasan. Token embedding memakai laporan Workers AI bila tersedia, dan bila tidak dihitung perkiraan dari jumlah karakter.',
     }),
   );
 }

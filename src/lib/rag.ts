@@ -2,23 +2,48 @@ import type { Env, RetrievedChunk } from '../types';
 import { chunkText } from './chunker';
 import { newId, nowSeconds } from './ids';
 import { sha256Hex } from './crypto';
+import { recordEmbeddingTokens } from './usage';
 
 // Workers AI accepts a bounded array per embedding call.
 const EMBED_BATCH = 50;
 // Vectorize accepts up to 1000 vectors per upsert.
 const UPSERT_BATCH = 500;
 
-async function embed(env: Env, texts: string[]): Promise<number[][]> {
+/**
+ * Embeds text and meters what it cost.
+ *
+ * Workers AI does not always report token usage for embedding models. When it
+ * does not, spend is estimated from character count at the usual four
+ * characters per token, so the figure is an order-of-magnitude guide rather
+ * than a billing record. The usage page labels it as such.
+ */
+async function embed(env: Env, texts: string[], tenantId: string): Promise<number[][]> {
   const vectors: number[][] = [];
+  let tokens = 0;
+
   for (let i = 0; i < texts.length; i += EMBED_BATCH) {
     const batch = texts.slice(i, i + EMBED_BATCH);
     // The Workers AI binding types model names as a closed union, so the
     // configurable EMBEDDING_MODEL is passed through an explicit cast.
     const result = (await env.AI.run(env.EMBEDDING_MODEL as never, {
       text: batch,
-    } as never)) as unknown as { data: number[][] };
+    } as never)) as unknown as {
+      data: number[][];
+      usage?: { total_tokens?: number; prompt_tokens?: number };
+    };
+
     vectors.push(...result.data);
+    tokens +=
+      result.usage?.total_tokens ??
+      result.usage?.prompt_tokens ??
+      Math.ceil(batch.reduce((sum, text) => sum + text.length, 0) / 4);
   }
+
+  // Metering must never break the thing being metered.
+  await recordEmbeddingTokens(env, tenantId, tokens).catch((error) => {
+    console.error(`failed to record embedding usage tenant=${tenantId}`, error);
+  });
+
   return vectors;
 }
 
@@ -67,6 +92,7 @@ export async function ingestDocument(
   const vectors = await embed(
     env,
     chunks.map((chunk) => `${title}\n\n${chunk.text}`),
+    tenantId,
   );
 
   const chunkRows = chunks.map((chunk) => ({ id: newId('chk'), ...chunk }));
@@ -89,6 +115,23 @@ export async function ingestDocument(
   }
 
   return { documentId, chunkCount: chunks.length, deduplicated: false };
+}
+
+/** Full stored text of one document, for reading it back in the console. */
+export async function getDocument(env: Env, tenantId: string, documentId: string) {
+  return env.DB.prepare(
+    `SELECT id, title, source, chunk_count, content, created_at
+     FROM documents WHERE id = ? AND tenant_id = ?`,
+  )
+    .bind(documentId, tenantId)
+    .first<{
+      id: string;
+      title: string;
+      source: string | null;
+      chunk_count: number;
+      content: string;
+      created_at: number;
+    }>();
 }
 
 export async function deleteDocument(
@@ -125,7 +168,7 @@ export async function retrieve(
   topK = 5,
   minScore = 0.4,
 ): Promise<RetrievedChunk[]> {
-  const [vector] = await embed(env, [query]);
+  const [vector] = await embed(env, [query], tenantId);
   if (!vector) return [];
 
   const matches = await env.VECTORIZE.query(vector, {

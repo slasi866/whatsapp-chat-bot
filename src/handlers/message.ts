@@ -16,7 +16,7 @@ import { retrieve } from '../lib/rag';
 import { getTenantById, getTenantToken } from '../lib/tenants';
 import { createWhatsAppClient } from '../lib/whatsapp';
 import { checkRateLimit } from '../lib/ratelimit';
-import { isOverQuota, recordUsage } from '../lib/usage';
+import { claimMessageQuota, recordTokens } from '../lib/usage';
 import { newId, nowSeconds } from '../lib/ids';
 
 const MAX_TOOL_ROUNDS = 3;
@@ -29,6 +29,16 @@ const DEFAULT_FALLBACK =
 export async function handleInbound(env: Env, job: InboundJob): Promise<void> {
   const tenant = await getTenantById(env, job.tenantId);
   if (!tenant || tenant.status !== 'active') return;
+
+  // No credential means every attempt fails identically. Stopping here keeps
+  // the message out of the retry-then-dead-letter loop it used to enter, and
+  // says plainly what is missing.
+  if (!tenant.wa_token_enc) {
+    console.error(
+      `tenant=${tenant.id} (${tenant.slug}) has no WhatsApp access token; dropping inbound message`,
+    );
+    return;
+  }
 
   const allowed = await checkRateLimit(
     env,
@@ -56,23 +66,38 @@ export async function handleInbound(env: Env, job: InboundJob): Promise<void> {
   // A human agent owns this thread; the bot must stay quiet.
   if (conversation.status === 'human') return;
 
+  // A destructive command anyone could type is not something to expose to
+  // customers, so it is limited to the tenant's own agent number.
   if (job.text.trim().toLowerCase() === '/reset') {
-    await env.DB.prepare('DELETE FROM messages WHERE conversation_id = ?')
-      .bind(conversation.id)
-      .run();
-    await whatsapp.sendText(job.from, 'Percakapan direset. Ada yang bisa kami bantu?');
-    return;
+    if (tenant.escalation_number && job.from === tenant.escalation_number) {
+      await env.DB.prepare('DELETE FROM messages WHERE conversation_id = ?')
+        .bind(conversation.id)
+        .run();
+      await whatsapp.sendText(job.from, 'Percakapan direset. Ada yang bisa kami bantu?');
+      return;
+    }
+    console.info(`ignoring /reset from non-agent number tenant=${tenant.id}`);
   }
 
-  if (await isOverQuota(env, tenant)) {
-    console.warn(`quota exceeded tenant=${tenant.id}`);
+  // The slot is claimed before any spend, so two messages arriving together at
+  // the limit cannot both slip through.
+  const quota = await claimMessageQuota(env, tenant);
+  if (!quota.allowed) {
+    console.warn(`quota exceeded tenant=${tenant.id} used=${quota.used}/${tenant.monthly_quota}`);
     await whatsapp.sendText(job.from, tenant.fallback_message ?? DEFAULT_FALLBACK);
     return;
   }
 
+  // A greeting is a courtesy. Letting it throw here aborted the turn before the
+  // customer's actual question was ever answered, so its failure is logged and
+  // the reply carries on.
   if (isFirstContact && tenant.greeting) {
-    await whatsapp.sendText(job.from, tenant.greeting);
-    await appendMessage(env, conversation, { role: 'assistant', content: tenant.greeting });
+    try {
+      await whatsapp.sendText(job.from, tenant.greeting);
+      await appendMessage(env, conversation, { role: 'assistant', content: tenant.greeting });
+    } catch (error) {
+      console.error(`greeting failed tenant=${tenant.id} contact=${job.from}`, error);
+    }
   }
 
   try {
@@ -153,7 +178,7 @@ async function generateReply(
     }
   }
 
-  await recordUsage(env, tenant.id, inputTokens, outputTokens);
+  await recordTokens(env, tenant.id, inputTokens, outputTokens);
   return text || (tenant.fallback_message ?? DEFAULT_FALLBACK);
 }
 

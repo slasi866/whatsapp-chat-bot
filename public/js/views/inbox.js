@@ -22,6 +22,13 @@ export const flush = true;
 
 const LIST_POLL_MS = 12000;
 const THREAD_POLL_MS = 5000;
+const PAGE_SIZE = 50;
+
+/** Nothing read yet, or a message arrived after the agent last looked. */
+function isUnread(conversation) {
+  if (!conversation.last_message_at) return false;
+  return !conversation.agent_read_at || conversation.last_message_at > conversation.agent_read_at;
+}
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Semua status' },
@@ -45,6 +52,8 @@ export function skeleton() {
 
 export async function render() {
   const tenantId = store.tenantId;
+  let convOffset = 0;
+  let convHasMore = false;
 
   const convScroll = h('div', { class: 'conv-scroll' }, skeletonList(6));
   const chatPane = h('section', { class: 'chat' });
@@ -123,6 +132,7 @@ export async function render() {
           {
             class: 'conv',
             style: { '--i': index },
+            dataset: { unread: isUnread(conversation) ? 'true' : 'false' },
             role: 'option',
             'aria-selected': conversation.id === store.activeConversationId ? 'true' : 'false',
             onClick: () => selectConversation(conversation.id),
@@ -139,6 +149,7 @@ export async function render() {
                 text: conversation.contact_name || conversation.contact_wa_id,
               }),
               h('span', { class: 'conv-when', text: fmtRelative(conversation.last_message_at) }),
+              isUnread(conversation) && h('i', { class: 'conv-unread', title: 'Belum dibaca' }),
             ),
             h(
               'div',
@@ -154,16 +165,49 @@ export async function render() {
       ),
     );
 
-    mount(convScroll, listNode);
+    const more = convHasMore
+      ? h(
+          'div',
+          { style: { padding: '12px' } },
+          button({
+            label: 'Muat lebih banyak',
+            variant: 'ghost',
+            size: 'sm',
+            block: true,
+            onClick: () => loadConversations(true, true),
+          }),
+        )
+      : null;
+
+    mount(convScroll, listNode, more);
   }
 
-  async function loadConversations(quiet = false) {
+  /**
+   * Polling refreshes the first page and merges it in by id, so rows the agent
+   * pulled in with "load more" are not thrown away every few seconds.
+   */
+  function mergeConversations(fresh) {
+    const byId = new Map(store.conversations.map((item) => [item.id, item]));
+    for (const item of fresh) byId.set(item.id, item);
+    store.conversations = [...byId.values()].sort(
+      (a, b) => (b.last_message_at ?? 0) - (a.last_message_at ?? 0),
+    );
+  }
+
+  async function loadConversations(quiet = false, append = false) {
     try {
-      const { conversations } = await endpoints.listConversations(
+      const { conversations, has_more, next_offset } = await endpoints.listConversations(
         tenantId,
         store.conversationFilter,
+        { limit: PAGE_SIZE, offset: append ? convOffset : 0 },
       );
-      store.conversations = conversations;
+
+      if (append) mergeConversations(conversations);
+      else if (convOffset > 0) mergeConversations(conversations);
+      else store.conversations = conversations;
+
+      convHasMore = has_more;
+      if (next_offset !== null && next_offset !== undefined) convOffset = next_offset;
       drawConversations();
 
       if (store.activeConversationId) {

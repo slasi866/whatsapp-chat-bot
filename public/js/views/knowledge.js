@@ -2,7 +2,7 @@ import { h, mount } from '../core/dom.js';
 import { endpoints } from '../core/api.js';
 import { store } from '../core/store.js';
 import { toast } from '../core/toast.js';
-import { confirmDialog } from '../core/modal.js';
+import { confirmDialog, infoDialog } from '../core/modal.js';
 import { pageHead } from '../components/shell.js';
 import { dataTable } from '../components/table.js';
 import { emptyState, skeletonTable } from '../components/feedback.js';
@@ -218,7 +218,29 @@ export async function render() {
     mount(
       tableSlot,
       dataTable(COLUMNS, rows, (document_) => [
-        h('span', { class: 'strong', text: document_.title }),
+        // The stored text is readable without deleting and re-uploading to
+        // find out what is actually in the knowledge base.
+        h(
+          'button',
+          {
+            class: 'link-cell',
+            title: 'Lihat isi dokumen',
+            onClick: async () => {
+              try {
+                const { document: full } = await endpoints.getDocument(tenantId, document_.id);
+                await infoDialog({
+                  title: full.title,
+                  description: `${fmtNumber(full.chunk_count)} chunk · ditambahkan ${fmtDateTime(full.created_at)}`,
+                  wide: true,
+                  content: h('div', { class: 'passage-text', text: full.content }),
+                });
+              } catch (error) {
+                toast(error.message, 'error');
+              }
+            },
+          },
+          document_.title,
+        ),
         fmtNumber(document_.chunk_count),
         h('span', { class: 't-sm muted', text: fmtDateTime(document_.created_at) }),
         button({

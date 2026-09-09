@@ -3,6 +3,7 @@ import type { Env, InboundJob } from './types';
 import webhook from './routes/webhook';
 import admin from './routes/admin';
 import { handleInbound } from './handlers/message';
+import { runRetention } from './handlers/retention';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -20,6 +21,15 @@ app.onError((error, c) => {
 
 export default {
   fetch: app.fetch,
+
+  /** Nightly clean-up of the two tables that would otherwise grow forever. */
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      runRetention(env).catch((error) => {
+        console.error('retention sweep failed', error);
+      }),
+    );
+  },
 
   /**
    * Replies are generated here rather than in the webhook so Meta always gets

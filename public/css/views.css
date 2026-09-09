@@ -225,6 +225,24 @@
   margin-top: 3px;
 }
 
+/* Unread threads carry weight as well as a dot, so the state survives being
+   glanced at rather than depending on spotting one small mark. */
+.conv[data-unread="true"] .conv-name {
+  font-weight: 720;
+}
+.conv[data-unread="true"] .conv-when {
+  color: var(--c-brand);
+  font-weight: 700;
+}
+.conv-unread {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--g-brand);
+  box-shadow: 0 0 0 3px var(--c-brand-soft);
+}
+
 /* --- Chat -------------------------------------------------------------- */
 
 .chat {

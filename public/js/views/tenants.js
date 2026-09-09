@@ -4,7 +4,9 @@ import { fmtDateTime, fmtNumber } from '../core/format.js';
 import { pageHead } from '../components/shell.js';
 import { avatar } from '../components/avatar.js';
 import { dataTable } from '../components/table.js';
-import { badge, button, searchInput, statTile } from '../components/ui.js';
+import { badge, button, notice, searchInput, setLoading, statTile } from '../components/ui.js';
+import { infoDialog } from '../core/modal.js';
+import { toast } from '../core/toast.js';
 import { emptyCard, emptyState, skeletonCards, skeletonTable } from '../components/feedback.js';
 import { tenantPath } from '../core/router.js';
 
@@ -22,8 +24,62 @@ export function skeleton() {
   return h('div', {}, pageHead('Daftar tenant', 'Memuat...'), skeletonCards(4), h('div', { style: { height: '16px' } }), skeletonTable(6, 5));
 }
 
+/**
+ * Runs a live tool-calling check against the model endpoint. Escalation and
+ * lead capture both depend on tool calling, and a router that ignores tools
+ * breaks them silently, so this makes the answer visible on demand.
+ */
+function diagnosticsButton() {
+  const node = button({
+    label: 'Cek provider',
+    iconName: 'zap',
+    onClick: async () => {
+      setLoading(node, true);
+      try {
+        const result = await endpoints.diagnoseLlm();
+        const rows = [
+          ['Model', result.model],
+          ['Endpoint terjangkau', result.reachable ? 'ya' : 'tidak'],
+          ['Tool calling didukung', result.tool_calling ? 'ya' : 'TIDAK'],
+          ['Tool yang dipanggil', (result.tools_called ?? []).join(', ') || '-'],
+          ['Alasan berhenti', result.finish_reason ?? '-'],
+          ['Waktu respons', `${result.elapsed_ms} ms`],
+          ['Token input/output', `${result.input_tokens} / ${result.output_tokens}`],
+        ];
+        await infoDialog({
+          title: 'Diagnosa provider model',
+          description: result.tool_calling
+            ? 'Tool calling berfungsi, jadi eskalasi ke agent dan penangkapan lead akan jalan.'
+            : 'Tool calling TIDAK berfungsi. Bot tetap membalas, tetapi eskalasi ke agent dan penangkapan lead akan mati diam-diam.',
+          wide: true,
+          content: h(
+            'div',
+            { class: 'col', style: { gap: '8px' } },
+            rows.map(([label, value]) =>
+              h(
+                'div',
+                { class: 'row' },
+                h('span', { class: 'muted t-sm', style: { minWidth: '190px' }, text: label }),
+                h('span', { class: 'strong', text: String(value) }),
+              ),
+            ),
+            result.reply_preview &&
+              h('div', { class: 'passage-text', text: result.reply_preview }),
+            result.error && notice(result.error, 'danger'),
+          ),
+        });
+      } catch (error) {
+        toast(error.message, 'error');
+      } finally {
+        setLoading(node, false);
+      }
+    },
+  });
+  return node;
+}
+
 export async function render() {
-  const { tenants } = await endpoints.listTenants();
+  const { tenants } = await endpoints.listTenants({ limit: 200 });
 
   const newButton = h(
     'a',
@@ -115,7 +171,7 @@ export async function render() {
     pageHead(
       'Daftar tenant',
       `${tenants.length} company terdaftar di platform ini.`,
-      [newButton],
+      [diagnosticsButton(), newButton],
     ),
     h(
       'div',

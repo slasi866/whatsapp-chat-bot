@@ -10,6 +10,13 @@ GRAPH_API_VERSION = "v23.0"
 LLM_BASE_URL = "https://api.pesatrouter.com/v1"
 DEFAULT_MODEL = "pesat-flash"
 EMBEDDING_MODEL = "@cf/baai/bge-m3"
+# Transcripts are kept this long; dedupe rows only need to outlive Meta retries.
+MESSAGE_RETENTION_DAYS = "90"
+DEDUPE_RETENTION_DAYS = "3"
+
+# Nightly retention sweep, 03:00 UTC.
+[triggers]
+crons = ["0 3 * * *"]
 
 [observability]
 enabled = true

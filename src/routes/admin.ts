@@ -9,15 +9,41 @@ import {
   invalidateTenantCache,
   publicTenant,
 } from '../lib/tenants';
-import { deleteDocument, ingestDocument, retrieve } from '../lib/rag';
+import { deleteDocument, getDocument, ingestDocument, retrieve } from '../lib/rag';
 import { getDailyUsage, getMonthlyUsage } from '../lib/usage';
+import { complete } from '../lib/llm';
 import { appendMessage, setConversationStatus } from '../lib/conversations';
 import { createWhatsAppClient, isWithinServiceWindow } from '../lib/whatsapp';
 import type { Conversation } from '../types';
 
 const admin = new Hono<{ Bindings: Env; Variables: AuthVars }>();
 
-admin.use('*', authenticate);
+/**
+ * Auth is mounted on the paths that exist rather than on everything. Mounting
+ * it on '*' meant a typo in a URL came back as 401, sending an integrator
+ * hunting for a credential problem when the real fault was the path.
+ */
+admin.use('/me', authenticate);
+admin.use('/tenants', authenticate);
+admin.use('/tenants/*', authenticate);
+admin.use('/diagnostics/*', authenticate);
+
+/** Clamped paging. Callers that send nothing keep the previous behaviour. */
+function paging(c: { req: { query: (key: string) => string | undefined } }, fallback: number, max: number) {
+  const limit = Math.min(max, Math.max(1, Number(c.req.query('limit')) || fallback));
+  const offset = Math.max(0, Number(c.req.query('offset')) || 0);
+  // One extra row is fetched so "is there more" needs no second count query.
+  return { limit, offset, probe: limit + 1 };
+}
+
+function page<T>(rows: T[], limit: number, offset: number) {
+  const hasMore = rows.length > limit;
+  return {
+    items: hasMore ? rows.slice(0, limit) : rows,
+    has_more: hasMore,
+    next_offset: hasMore ? offset + limit : null,
+  };
+}
 
 const PLANS: Record<string, number> = { starter: 1000, growth: 5000, scale: 25000 };
 
@@ -211,10 +237,14 @@ admin.post('/tenants', requireAdmin, async (c) => {
 });
 
 admin.get('/tenants', requireAdmin, async (c) => {
+  const { limit, offset, probe } = paging(c, 50, 200);
   const result = await c.env.DB.prepare(
-    'SELECT * FROM tenants ORDER BY created_at DESC LIMIT 200',
-  ).all<Tenant>();
-  return c.json({ tenants: result.results.map(publicTenant) });
+    'SELECT * FROM tenants ORDER BY created_at DESC LIMIT ? OFFSET ?',
+  )
+    .bind(probe, offset)
+    .all<Tenant>();
+  const { items, has_more, next_offset } = page(result.results, limit, offset);
+  return c.json({ tenants: items.map(publicTenant), has_more, next_offset });
 });
 
 admin.get('/tenants/:tenantId', requireTenantAccess, async (c) => {
@@ -404,28 +434,60 @@ admin.post('/tenants/:tenantId/search', requireTenantAccess, async (c) => {
 
 admin.get('/tenants/:tenantId/conversations', requireTenantAccess, async (c) => {
   const status = c.req.query('status');
-  const base = `SELECT id, contact_wa_id, contact_name, status, last_inbound_at, last_message_at, created_at
+  const { limit, offset, probe } = paging(c, 50, 200);
+  const base = `SELECT id, contact_wa_id, contact_name, status, last_inbound_at,
+                       last_message_at, agent_read_at, created_at
                 FROM conversations WHERE tenant_id = ?`;
   const statement = status
-    ? c.env.DB.prepare(`${base} AND status = ? ORDER BY last_message_at DESC LIMIT 100`).bind(
+    ? c.env.DB.prepare(
+        `${base} AND status = ? ORDER BY last_message_at DESC LIMIT ? OFFSET ?`,
+      ).bind(c.req.param('tenantId'), status, probe, offset)
+    : c.env.DB.prepare(`${base} ORDER BY last_message_at DESC LIMIT ? OFFSET ?`).bind(
         c.req.param('tenantId'),
-        status,
-      )
-    : c.env.DB.prepare(`${base} ORDER BY last_message_at DESC LIMIT 100`).bind(
-        c.req.param('tenantId'),
+        probe,
+        offset,
       );
   const result = await statement.all();
-  return c.json({ conversations: result.results });
+  const { items, has_more, next_offset } = page(result.results, limit, offset);
+  return c.json({ conversations: items, has_more, next_offset });
+});
+
+/** Full stored text of a document, so the console can show it without a re-upload. */
+admin.get('/tenants/:tenantId/documents/:documentId', requireTenantAccess, async (c) => {
+  const document = await getDocument(
+    c.env,
+    c.req.param('tenantId'),
+    c.req.param('documentId'),
+  );
+  return document ? c.json({ document }) : c.json({ error: 'Not found' }, 404);
 });
 
 admin.get('/tenants/:tenantId/conversations/:conversationId/messages', requireTenantAccess, async (c) => {
+  const tenantId = c.req.param('tenantId');
+  const conversationId = c.req.param('conversationId');
+  const { limit, offset, probe } = paging(c, 200, 500);
+
+  // Newest first so paging walks backwards through history, then reversed so
+  // the caller still receives them in reading order.
   const result = await c.env.DB.prepare(
     `SELECT role, content, wa_message_id, created_at FROM messages
-     WHERE conversation_id = ? AND tenant_id = ? ORDER BY created_at ASC LIMIT 500`,
+     WHERE conversation_id = ? AND tenant_id = ?
+     ORDER BY created_at DESC, rowid DESC LIMIT ? OFFSET ?`,
   )
-    .bind(c.req.param('conversationId'), c.req.param('tenantId'))
+    .bind(conversationId, tenantId, probe, offset)
     .all();
-  return c.json({ messages: result.results });
+
+  const { items, has_more, next_offset } = page(result.results, limit, offset);
+
+  // Opening a thread is what marks it read; this endpoint is the only way the
+  // console reads one.
+  await c.env.DB.prepare(
+    'UPDATE conversations SET agent_read_at = ? WHERE id = ? AND tenant_id = ?',
+  )
+    .bind(nowSeconds(), conversationId, tenantId)
+    .run();
+
+  return c.json({ messages: items.reverse(), has_more, next_offset });
 });
 
 async function loadConversation(
@@ -494,12 +556,61 @@ admin.post('/tenants/:tenantId/conversations/:conversationId/send', requireTenan
 // --- Leads and usage -----------------------------------------------------
 
 admin.get('/tenants/:tenantId/leads', requireTenantAccess, async (c) => {
+  const { limit, offset, probe } = paging(c, 50, 200);
   const result = await c.env.DB.prepare(
-    'SELECT * FROM leads WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 200',
+    'SELECT * FROM leads WHERE tenant_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
   )
-    .bind(c.req.param('tenantId'))
+    .bind(c.req.param('tenantId'), probe, offset)
     .all();
-  return c.json({ leads: result.results });
+  const { items, has_more, next_offset } = page(result.results, limit, offset);
+  return c.json({ leads: items, has_more, next_offset });
+});
+
+/**
+ * Checks whether the configured model endpoint actually honours tool calling.
+ * Escalation and lead capture both depend on it, and when a router silently
+ * ignores tools they fail quietly, which is the worst way for them to fail.
+ */
+admin.get('/diagnostics/llm', requireAdmin, async (c) => {
+  const model = c.req.query('model') || c.env.DEFAULT_MODEL;
+  const started = Date.now();
+  try {
+    const result = await complete(
+      c.env,
+      model,
+      [
+        {
+          role: 'system',
+          content:
+            'You are a WhatsApp assistant. When a customer asks for a human, call escalate_to_human.',
+        },
+        { role: 'user', content: 'Saya mau bicara dengan orangnya saja, bukan bot.' },
+      ],
+      true,
+    );
+    return c.json({
+      model,
+      reachable: true,
+      tool_calling: result.toolCalls.length > 0,
+      tools_called: result.toolCalls.map((call) => call.function.name),
+      finish_reason: result.finishReason,
+      reply_preview: result.text.slice(0, 200),
+      input_tokens: result.inputTokens,
+      output_tokens: result.outputTokens,
+      elapsed_ms: Date.now() - started,
+    });
+  } catch (error) {
+    return c.json(
+      {
+        model,
+        reachable: false,
+        tool_calling: false,
+        error: error instanceof Error ? error.message : String(error),
+        elapsed_ms: Date.now() - started,
+      },
+      502,
+    );
+  }
 });
 
 admin.get('/tenants/:tenantId/usage', requireTenantAccess, async (c) => {
