@@ -12,6 +12,14 @@ export async function verifyMetaSignature(
 ): Promise<boolean> {
   if (!header || !header.startsWith('sha256=')) return false;
 
+  // An unset secret must reject cleanly. Importing an empty HMAC key throws,
+  // which surfaced as a 500 and made Meta retry a request that can never
+  // succeed, instead of the 403 that tells the operator what is wrong.
+  if (!appSecret) {
+    console.error('META_APP_SECRET is not configured; rejecting signed webhook');
+    return false;
+  }
+
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(appSecret),

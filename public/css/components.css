@@ -318,11 +318,17 @@
 }
 .stat-value {
   margin-top: var(--s-2);
-  font-size: var(--t-2xl);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: var(--t-3xl);
+  font-weight: 650;
+  letter-spacing: var(--track-display);
   font-variant-numeric: tabular-nums;
-  line-height: 1.05;
+  line-height: 1;
+  /* The figure is the point of the tile, so it carries the brand gradient. */
+  background: var(--g-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  width: fit-content;
 }
 .stat-sub {
   margin-top: var(--s-2);

@@ -21,8 +21,110 @@ admin.use('*', authenticate);
 
 const PLANS: Record<string, number> = { starter: 1000, growth: 5000, scale: 25000 };
 
+/** Models the platform will actually route to. */
+const MODELS = new Set(['pesat-flash', 'pesat-pro', 'pesat-lite']);
+
+const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]{0,47}$/;
+const PHONE_PATTERN = /^[0-9]{8,20}$/;
+
+/**
+ * Field length ceilings. Without these a 5000-character company name reaches
+ * both the system prompt on every reply and every table cell in the console.
+ */
+const MAX = {
+  name: 120,
+  slug: 48,
+  persona: 4000,
+  greeting: 600,
+  fallback_message: 600,
+  business_hours: 500,
+  wa_phone_number_id: 64,
+  wa_business_id: 64,
+  model: 64,
+  language: 8,
+} as const;
+
+const MAX_QUOTA = 10_000_000;
+
+/**
+ * Observed delay before a freshly upserted vector becomes queryable in
+ * Vectorize. Measured at 26 to 41 seconds on the free plan.
+ */
+const INDEX_LAG_SECONDS = 45;
+
 function str(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/**
+ * WhatsApp wants a bare international number. People type "+62 812-3456" or
+ * "0812 3456", so accept those shapes and normalise rather than rejecting and
+ * generating a support ticket. A leading zero is read as the Indonesian
+ * trunk prefix.
+ */
+function normalizePhone(value: unknown): string | null {
+  const raw = str(value);
+  if (raw === null) return null;
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  return digits.startsWith('0') ? `62${digits.slice(1)}` : digits;
+}
+
+/**
+ * Validates the fields a caller supplied. Returns a message naming the first
+ * offending field, or null when everything checks out. Invalid values are
+ * rejected outright rather than silently dropped, which previously made a
+ * typo look like "no editable fields supplied".
+ */
+function validateTenantFields(body: Record<string, unknown>): string | null {
+  for (const [field, limit] of Object.entries(MAX)) {
+    const value = body[field];
+    if (typeof value === 'string' && value.trim().length > limit) {
+      return `${field} melebihi ${limit} karakter`;
+    }
+  }
+
+  const slug = str(body.slug);
+  if (slug && !SLUG_PATTERN.test(slug)) {
+    return 'slug hanya boleh huruf kecil, angka, dan tanda hubung';
+  }
+
+  if ('plan' in body) {
+    const plan = str(body.plan);
+    if (!plan || !(plan in PLANS)) return `plan harus salah satu dari ${Object.keys(PLANS).join(', ')}`;
+  }
+
+  if ('model' in body) {
+    const model = str(body.model);
+    // An empty model means "follow the platform default", so it stays legal.
+    if (model && !MODELS.has(model)) return `model harus salah satu dari ${[...MODELS].join(', ')}`;
+  }
+
+  if ('status' in body && body.status !== 'active' && body.status !== 'suspended') {
+    return 'status harus active atau suspended';
+  }
+
+  if ('monthly_quota' in body) {
+    const quota = body.monthly_quota;
+    if (typeof quota !== 'number' || !Number.isInteger(quota) || quota < 0 || quota > MAX_QUOTA) {
+      return `monthly_quota harus bilangan bulat antara 0 dan ${MAX_QUOTA}`;
+    }
+  }
+
+  const escalation = normalizePhone(body.escalation_number);
+  if (escalation && !PHONE_PATTERN.test(escalation)) {
+    return 'escalation_number harus berisi 8 sampai 20 digit angka';
+  }
+
+  if ('business_hours' in body && str(body.business_hours)) {
+    try {
+      JSON.parse(str(body.business_hours) as string);
+    } catch {
+      return 'business_hours harus JSON yang valid';
+    }
+  }
+
+  return null;
 }
 
 /** Loads the tenant named in the path, after requireTenantAccess has run. */
@@ -53,6 +155,9 @@ admin.post('/tenants', requireAdmin, async (c) => {
   if (!name || !slug) {
     return c.json({ error: 'name and slug are required' }, 400);
   }
+
+  const invalid = validateTenantFields(body);
+  if (invalid) return c.json({ error: invalid }, 400);
 
   const plan = str(body.plan) ?? 'starter';
   const quota = typeof body.monthly_quota === 'number' ? body.monthly_quota : PLANS[plan] ?? 1000;
@@ -87,7 +192,7 @@ admin.post('/tenants', requireAdmin, async (c) => {
         str(body.language) ?? 'id',
         str(body.greeting),
         str(body.fallback_message),
-        str(body.escalation_number),
+        normalizePhone(body.escalation_number),
         str(body.business_hours),
         at,
         at,
@@ -137,13 +242,31 @@ admin.patch('/tenants/:tenantId', requireTenantAccess, async (c) => {
   if (!tenant) return c.json({ error: 'Not found' }, 404);
 
   const body = await c.req.json<Record<string, unknown>>().catch((): Record<string, unknown> => ({}));
+
+  const invalid = validateTenantFields(body);
+  if (invalid) return c.json({ error: invalid }, 400);
+
+  // Commercial fields are admin-only, so a tenant sending them gets told why
+  // rather than the misleading "no editable fields supplied".
+  if (c.get('role') !== 'admin') {
+    const forbidden = ['plan', 'monthly_quota', 'status'].filter((field) => field in body);
+    if (forbidden.length) {
+      return c.json(
+        { error: `${forbidden.join(', ')} hanya bisa diubah oleh admin platform` },
+        403,
+      );
+    }
+  }
+
   const sets: string[] = [];
   const values: unknown[] = [];
 
   for (const field of EDITABLE) {
     if (field in body) {
       sets.push(`${field} = ?`);
-      values.push(str(body[field]));
+      values.push(
+        field === 'escalation_number' ? normalizePhone(body[field]) : str(body[field]),
+      );
     }
   }
   if (str(body.wa_access_token)) {
@@ -221,7 +344,16 @@ admin.post('/tenants/:tenantId/documents', requireTenantAccess, async (c) => {
   if (!title || !content) return c.json({ error: 'title and content are required' }, 400);
 
   const result = await ingestDocument(c.env, tenantId, title, content, str(body.source));
-  return c.json(result, result.deduplicated ? 200 : 201);
+  return c.json(
+    {
+      ...result,
+      // Vectorize processes upserts asynchronously, measured at roughly half
+      // a minute. Without saying so, a client tests retrieval immediately,
+      // sees nothing, and concludes the upload failed.
+      searchable_after_seconds: result.deduplicated ? 0 : INDEX_LAG_SECONDS,
+    },
+    result.deduplicated ? 200 : 201,
+  );
 });
 
 admin.get('/tenants/:tenantId/documents', requireTenantAccess, async (c) => {
@@ -248,8 +380,24 @@ admin.post('/tenants/:tenantId/search', requireTenantAccess, async (c) => {
   const body = await c.req.json<Record<string, unknown>>().catch((): Record<string, unknown> => ({}));
   const query = str(body.query);
   if (!query) return c.json({ error: 'query is required' }, 400);
-  const chunks = await retrieve(c.env, c.req.param('tenantId'), query);
-  return c.json({ chunks });
+  const tenantId = c.req.param('tenantId');
+  const chunks = await retrieve(c.env, tenantId, query);
+
+  // Distinguish "nothing matches this question" from "the index has not
+  // caught up with a document uploaded moments ago". They look identical to
+  // the caller but mean opposite things.
+  let indexing = false;
+  if (chunks.length === 0) {
+    const newest = await c.env.DB.prepare(
+      'SELECT MAX(created_at) AS created_at FROM documents WHERE tenant_id = ?',
+    )
+      .bind(tenantId)
+      .first<{ created_at: number | null }>();
+    const age = newest?.created_at ? nowSeconds() - newest.created_at : null;
+    indexing = age !== null && age < INDEX_LAG_SECONDS * 3;
+  }
+
+  return c.json({ chunks, indexing });
 });
 
 // --- Conversations and human handover ------------------------------------

@@ -72,6 +72,17 @@ export async function render() {
             'success',
           );
 
+          // The index is eventually consistent, so say so instead of letting
+          // the client test retrieval, see nothing, and assume it failed.
+          if (result.searchable_after_seconds) {
+            addError.replaceChildren(
+              notice(
+                `Dokumen tersimpan. Butuh sekitar ${result.searchable_after_seconds} detik sebelum bisa ditemukan pencarian, jadi tes retrieval yang dijalankan sekarang mungkin masih kosong.`,
+                'info',
+              ),
+            );
+          }
+
           titleInput.value = '';
           contentInput.value = '';
           counter.textContent = '0 karakter';
@@ -127,17 +138,22 @@ export async function render() {
     mount(resultSlot, h('div', { class: 'skeleton', style: { height: '72px', marginTop: '14px' } }));
 
     try {
-      const { chunks } = await endpoints.search(tenantId, query);
+      const { chunks, indexing } = await endpoints.search(tenantId, query);
       if (chunks.length === 0) {
         mount(
           resultSlot,
           h(
             'div',
             { style: { marginTop: '14px' } },
-            notice(
-              'Tidak ada passage yang cocok. Untuk pertanyaan ini bot akan mengaku tidak tahu dan menawarkan agent.',
-              'warn',
-            ),
+            indexing
+              ? notice(
+                  'Dokumen terbaru belum selesai diindeks, jadi belum bisa ditemukan. Tunggu sekitar satu menit lalu coba lagi. Ini bukan tanda unggahannya gagal.',
+                  'info',
+                )
+              : notice(
+                  'Tidak ada passage yang cocok. Untuk pertanyaan ini bot akan mengaku tidak tahu dan menawarkan agent.',
+                  'warn',
+                ),
           ),
         );
         return;

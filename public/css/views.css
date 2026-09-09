@@ -50,10 +50,12 @@
 }
 
 .login-pitch h1 {
-  font-size: var(--t-3xl);
-  line-height: 1.14;
-  letter-spacing: -0.03em;
-  max-width: 20ch;
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1.06;
+  letter-spacing: var(--track-display);
+  font-weight: 620;
+  max-width: 19ch;
+  text-wrap: balance;
 }
 .login-pitch .lede {
   font-size: var(--t-lg);
@@ -107,6 +109,15 @@
   width: 100%;
   max-width: 396px;
   animation: pop-in var(--dur-4) var(--ease-spring) both;
+}
+.login-card .card {
+  border-radius: var(--r-xl);
+  box-shadow: var(--sh-2);
+}
+.login-card h1 {
+  font-size: var(--t-2xl);
+  letter-spacing: var(--track-display);
+  font-weight: 640;
 }
 
 @media (max-width: 900px) {
