@@ -30,7 +30,12 @@ function applyProp(node, key, value) {
     return;
   }
   if (key === 'style' && typeof value === 'object') {
-    Object.assign(node.style, value);
+    for (const [property, setting] of Object.entries(value)) {
+      // Custom properties are invisible to the style object's named setters,
+      // so they have to go through setProperty.
+      if (property.startsWith('--')) node.style.setProperty(property, setting);
+      else node.style[property] = setting;
+    }
     return;
   }
   if (key.startsWith('on') && typeof value === 'function') {

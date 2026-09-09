@@ -1,48 +1,53 @@
 /**
- * Design tokens. Every value used anywhere else in the CSS comes from here,
- * so a rebrand is a change to this file only.
+ * Design tokens. Every value used anywhere else comes from here, so a rebrand
+ * or a motion re-tune is a change to this file only.
  *
  * The full light palette is defined on bare :root. Dark mode redefines only
- * the colour tokens, so no component ever needs a theme-specific rule.
+ * colour tokens, so no component needs a theme-specific rule.
  */
 
 :root {
-  /* Neutrals */
-  --c-bg: #f5f7f8;
+  /* Neutrals: cool slate, near-white ground */
+  --c-bg: #f7f8fa;
+  --c-bg-2: #eef1f5;
   --c-surface: #ffffff;
-  --c-surface-2: #f0f3f5;
-  --c-surface-3: #e6eaee;
-  --c-border: #dce2e7;
-  --c-border-strong: #bcc7d0;
-  --c-text: #121a20;
-  --c-text-2: #57646f;
-  --c-text-3: #87949f;
+  --c-surface-2: #f4f6f9;
+  --c-surface-3: #e9edf2;
+  --c-border: #e3e8ee;
+  --c-border-strong: #cbd4de;
+  --c-text: #0d1620;
+  --c-text-2: #55636f;
+  --c-text-3: #8695a3;
 
-  /* Brand */
-  --c-brand: #0d7d72;
-  --c-brand-hover: #0a655c;
+  /* Brand: emerald into teal */
+  --c-brand: #0d9276;
+  --c-brand-2: #0b8ba3;
+  --c-brand-hover: #0a7a62;
   --c-brand-ink: #ffffff;
-  --c-brand-soft: #dcf0ed;
-  --c-brand-ring: rgba(13, 125, 114, 0.35);
+  --c-brand-soft: #dcf3ec;
+  --c-brand-ring: rgba(13, 146, 118, 0.28);
+  --g-brand: linear-gradient(135deg, #0d9276 0%, #0b8ba3 100%);
+  --g-brand-dim: linear-gradient(135deg, rgba(13, 146, 118, 0.12), rgba(11, 139, 163, 0.12));
 
   /* Status */
-  --c-success: #1a7f4b;
-  --c-success-soft: #dcf3e6;
+  --c-success: #12784a;
+  --c-success-soft: #d9f2e3;
   --c-warn: #8a5a00;
   --c-warn-soft: #fbeed3;
   --c-danger: #b3242c;
-  --c-danger-soft: #fbe4e5;
+  --c-danger-soft: #fbe4e6;
   --c-info: #1f5f9e;
-  --c-info-soft: #e0ecf8;
+  --c-info-soft: #e2edf9;
 
-  /* Chat surfaces */
-  --c-chat-bg: #eceff1;
+  /* Chat */
+  --c-chat-bg: #eceff3;
   --c-bubble-in: #ffffff;
-  --c-bubble-out: #d7f6cd;
+  --c-bubble-out: #d6f5e4;
 
-  --c-overlay: rgba(12, 20, 25, 0.44);
+  --c-overlay: rgba(10, 18, 26, 0.42);
+  --c-glass: rgba(255, 255, 255, 0.72);
 
-  /* Spacing scale */
+  /* Spacing */
   --s-1: 4px;
   --s-2: 8px;
   --s-3: 12px;
@@ -52,37 +57,51 @@
   --s-7: 32px;
   --s-8: 44px;
 
-  /* Radii */
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 14px;
+  /* Radii: larger than before, which is most of the modern feel */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
   --r-full: 999px;
 
-  /* Elevation */
-  --sh-1: 0 1px 2px rgba(18, 26, 32, 0.06);
-  --sh-2: 0 1px 3px rgba(18, 26, 32, 0.08), 0 6px 16px rgba(18, 26, 32, 0.06);
-  --sh-3: 0 8px 28px rgba(18, 26, 32, 0.16);
+  /* Elevation: layered rather than one flat drop */
+  --sh-1: 0 1px 2px rgba(13, 22, 32, 0.05);
+  --sh-2:
+    0 1px 2px rgba(13, 22, 32, 0.05), 0 4px 12px rgba(13, 22, 32, 0.06),
+    0 12px 28px rgba(13, 22, 32, 0.04);
+  --sh-3:
+    0 2px 6px rgba(13, 22, 32, 0.08), 0 12px 32px rgba(13, 22, 32, 0.14),
+    0 32px 64px rgba(13, 22, 32, 0.12);
+  --sh-brand: 0 4px 14px rgba(13, 146, 118, 0.3);
 
   /* Typography */
   --f-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
   --f-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   --t-xs: 11px;
-  --t-sm: 12px;
+  --t-sm: 12.5px;
   --t-md: 13.5px;
   --t-lg: 15px;
-  --t-xl: 19px;
-  --t-2xl: 25px;
+  --t-xl: 20px;
+  --t-2xl: 28px;
+  --t-3xl: 36px;
 
   /* Layout */
-  --w-sidebar: 232px;
-  --h-topbar: 56px;
-  --w-conv-list: 300px;
+  --w-sidebar: 244px;
+  --h-topbar: 60px;
+  --w-conv-list: 312px;
 
   /* Motion */
-  --dur-fast: 110ms;
-  --dur: 200ms;
-  --ease: cubic-bezier(0.2, 0.6, 0.2, 1);
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 380ms;
+  --dur-4: 620ms;
+  /* Decelerating: things entering the screen. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Overshoot: things that should feel physical, like modals and toggles. */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
   /* Stacking */
   --z-sidebar: 30;
@@ -94,39 +113,45 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --c-bg: #0d1214;
-    --c-surface: #151e21;
-    --c-surface-2: #1c272b;
-    --c-surface-3: #243135;
-    --c-border: #2a373b;
-    --c-border-strong: #3d4d53;
-    --c-text: #e6eef0;
-    --c-text-2: #9aabb1;
-    --c-text-3: #74858c;
+    --c-bg: #0a0f14;
+    --c-bg-2: #070b0f;
+    --c-surface: #111920;
+    --c-surface-2: #17212a;
+    --c-surface-3: #1f2b35;
+    --c-border: #223039;
+    --c-border-strong: #354652;
+    --c-text: #e8eef3;
+    --c-text-2: #9aabb7;
+    --c-text-3: #6f8290;
 
-    --c-brand: #2fd0bd;
-    --c-brand-hover: #4fdccb;
-    --c-brand-ink: #04241f;
-    --c-brand-soft: #10322e;
-    --c-brand-ring: rgba(47, 208, 189, 0.4);
+    --c-brand: #2dd4aa;
+    --c-brand-2: #38bdf8;
+    --c-brand-hover: #4fdfba;
+    --c-brand-ink: #04231c;
+    --c-brand-soft: #0e2f28;
+    --c-brand-ring: rgba(45, 212, 170, 0.32);
+    --g-brand: linear-gradient(135deg, #2dd4aa 0%, #38bdf8 100%);
+    --g-brand-dim: linear-gradient(135deg, rgba(45, 212, 170, 0.14), rgba(56, 189, 248, 0.14));
 
     --c-success: #4ade80;
-    --c-success-soft: #10301f;
+    --c-success-soft: #0f2e1f;
     --c-warn: #fbbf24;
-    --c-warn-soft: #322610;
+    --c-warn-soft: #302510;
     --c-danger: #fb7185;
-    --c-danger-soft: #35171c;
+    --c-danger-soft: #33161b;
     --c-info: #7dbcf5;
-    --c-info-soft: #12283a;
+    --c-info-soft: #112738;
 
-    --c-chat-bg: #0f1719;
-    --c-bubble-in: #1c272b;
-    --c-bubble-out: #10402c;
+    --c-chat-bg: #080d11;
+    --c-bubble-in: #17212a;
+    --c-bubble-out: #0f3d2f;
 
-    --c-overlay: rgba(0, 0, 0, 0.62);
+    --c-overlay: rgba(0, 0, 0, 0.66);
+    --c-glass: rgba(17, 25, 32, 0.72);
 
     --sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --sh-2: 0 1px 3px rgba(0, 0, 0, 0.45), 0 6px 16px rgba(0, 0, 0, 0.32);
-    --sh-3: 0 8px 28px rgba(0, 0, 0, 0.5);
+    --sh-2: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+    --sh-3: 0 2px 8px rgba(0, 0, 0, 0.5), 0 16px 40px rgba(0, 0, 0, 0.55);
+    --sh-brand: 0 4px 16px rgba(45, 212, 170, 0.26);
   }
 }

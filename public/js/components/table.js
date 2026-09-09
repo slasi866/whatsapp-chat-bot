@@ -27,11 +27,11 @@ export function dataTable(columns, rows, renderRow) {
       ),
       h(
         'tbody',
-        {},
-        rows.map((row) =>
+        { class: 'stagger' },
+        rows.map((row, rowIndex) =>
           h(
             'tr',
-            {},
+            { style: { '--i': rowIndex } },
             renderRow(row).map((cell, index) => {
               const column = columns[index] ?? {};
               return h(

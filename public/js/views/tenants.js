@@ -120,14 +120,33 @@ export async function render() {
     h(
       'div',
       { class: 'grid cols', style: { marginBottom: '20px' } },
-      statTile({ label: 'Total tenant', value: fmtNumber(tenants.length) }),
-      statTile({ label: 'Aktif', value: fmtNumber(active), sub: `${tenants.length - active} suspend` }),
+      statTile({
+        label: 'Total tenant',
+        value: fmtNumber(tenants.length),
+        count: tenants.length,
+        format: fmtNumber,
+      }),
+      statTile({
+        label: 'Aktif',
+        value: fmtNumber(active),
+        count: active,
+        format: fmtNumber,
+        sub: `${tenants.length - active} suspend`,
+      }),
       statTile({
         label: 'WhatsApp tersambung',
         value: fmtNumber(connected),
+        count: connected,
+        format: fmtNumber,
         sub: `${tenants.length - connected} belum diisi`,
       }),
-      statTile({ label: 'Total kuota/bulan', value: fmtNumber(quota), sub: 'gabungan semua paket' }),
+      statTile({
+        label: 'Total kuota/bulan',
+        value: fmtNumber(quota),
+        count: quota,
+        format: fmtNumber,
+        sub: 'gabungan semua paket',
+      }),
     ),
     h(
       'div',

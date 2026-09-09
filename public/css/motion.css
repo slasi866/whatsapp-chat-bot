@@ -1,0 +1,157 @@
+/**
+ * Motion layer.
+ *
+ * Keyframes and the utility classes that apply them live here, so animation
+ * can be re-tuned or removed in one place. Every animation is decorative:
+ * nothing here is required for the interface to be usable, which is what
+ * makes the reduced-motion switch at the bottom safe.
+ */
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* Status dots that should read as "live" rather than static decoration. */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    opacity: 0.6;
+  }
+  70% {
+    box-shadow: 0 0 0 5px transparent;
+    opacity: 0;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 0;
+  }
+}
+
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Slow drift behind the login panel. */
+@keyframes aurora {
+  0% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, 4%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+/* --- Utility classes ---------------------------------------------------- */
+
+.anim-fade {
+  animation: fade-in var(--dur-2) var(--ease-out) both;
+}
+.anim-rise {
+  animation: rise-in var(--dur-3) var(--ease-out) both;
+}
+.anim-drop {
+  animation: drop-in var(--dur-2) var(--ease-out) both;
+}
+.anim-pop {
+  animation: pop-in var(--dur-3) var(--ease-spring) both;
+}
+.anim-slide {
+  animation: slide-in-left var(--dur-2) var(--ease-out) both;
+}
+
+/**
+ * Staggered entrance. The index is set as --i by motion.js, so a list reads
+ * as arriving in order instead of snapping in all at once. Capped so long
+ * lists never make the reader wait.
+ */
+.stagger > * {
+  animation: rise-in var(--dur-3) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 12) * 32ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .stagger > * {
+    animation-delay: 0ms !important;
+  }
+}

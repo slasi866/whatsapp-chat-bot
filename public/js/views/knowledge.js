@@ -147,10 +147,10 @@ export async function render() {
         h(
           'div',
           { class: 'col', style: { gap: '10px', marginTop: '14px' } },
-          chunks.map((chunk) =>
+          chunks.map((chunk, index) =>
             h(
               'div',
-              { class: 'passage' },
+              { class: 'passage', style: { '--i': index } },
               h(
                 'div',
                 { class: 'passage-head' },

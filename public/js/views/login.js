@@ -116,10 +116,10 @@ export function renderLogin(onSubmit) {
     h(
       'ul',
       { class: 'login-points' },
-      POINTS.map((point) =>
+      POINTS.map((point, index) =>
         h(
           'li',
-          {},
+          { style: { '--i': index } },
           icon(point.iconName),
           h(
             'div',

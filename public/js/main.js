@@ -10,6 +10,7 @@ import {
 } from './core/store.js';
 import { go, parseRoute, runTeardowns, startRouter, tenantPath } from './core/router.js';
 import { toast } from './core/toast.js';
+import { transition } from './core/motion.js';
 import { buildShell } from './components/shell.js';
 import { button } from './components/ui.js';
 import { errorCard, skeletonTable } from './components/feedback.js';
@@ -145,7 +146,8 @@ async function handleRoute() {
       : `${entry.title} · Pesat.ai Console`;
 
     const node = await entry.module.render(route);
-    mount(content, node);
+    // Cross-fade the skeleton out and the real view in where supported.
+    transition(() => mount(content, node));
   } catch (error) {
     mount(
       content,

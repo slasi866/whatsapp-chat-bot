@@ -5,41 +5,76 @@
 .login {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: 1.05fr 1fr;
 }
 
 .login-pitch {
+  position: relative;
   padding: var(--s-8);
-  background: var(--c-brand);
-  color: var(--c-brand-ink);
+  background: #06231d;
+  color: #eafff8;
   display: flex;
   flex-direction: column;
-  gap: var(--s-6);
+  gap: var(--s-7);
   justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
 }
+
+/* Two slow drifting colour fields. This is the only purely decorative motion
+   in the product, and it sits on the one screen with nothing to read yet. */
+.login-pitch::before,
+.login-pitch::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: -1;
+  opacity: 0.55;
+}
+.login-pitch::before {
+  width: 62%;
+  aspect-ratio: 1;
+  top: -14%;
+  left: -12%;
+  background: #0d9276;
+  animation: aurora 17s var(--ease-in-out) infinite;
+}
+.login-pitch::after {
+  width: 54%;
+  aspect-ratio: 1;
+  bottom: -18%;
+  right: -10%;
+  background: #0b8ba3;
+  animation: aurora 23s var(--ease-in-out) infinite reverse;
+}
+
 .login-pitch h1 {
-  font-size: 30px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  max-width: 22ch;
+  font-size: var(--t-3xl);
+  line-height: 1.14;
+  letter-spacing: -0.03em;
+  max-width: 20ch;
 }
 .login-pitch .lede {
   font-size: var(--t-lg);
-  opacity: 0.88;
-  max-width: 40ch;
+  opacity: 0.82;
+  max-width: 42ch;
 }
 .login-pitch .logo-mark {
-  background: var(--c-brand-ink);
-  color: var(--c-brand);
-  width: 38px;
-  height: 38px;
-  flex-basis: 38px;
+  width: 40px;
+  height: 40px;
+  flex-basis: 40px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #eafff8;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
 }
 
 .login-points {
   display: flex;
   flex-direction: column;
-  gap: var(--s-3);
+  gap: var(--s-4);
   list-style: none;
   padding: 0;
 }
@@ -47,11 +82,18 @@
   display: flex;
   align-items: flex-start;
   gap: var(--s-3);
-  opacity: 0.94;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  animation: slide-in-left var(--dur-4) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
 }
 .login-points .icon {
   flex: 0 0 16px;
   margin-top: 3px;
+  opacity: 0.9;
 }
 
 .login-form-side {
@@ -63,10 +105,11 @@
 
 .login-card {
   width: 100%;
-  max-width: 372px;
+  max-width: 396px;
+  animation: pop-in var(--dur-4) var(--ease-spring) both;
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
   .login {
     grid-template-columns: 1fr;
   }
@@ -108,6 +151,7 @@
 }
 
 .conv {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--s-3);
@@ -115,18 +159,31 @@
   padding: var(--s-3);
   border: 0;
   border-bottom: 1px solid var(--c-border);
-  border-left: 3px solid transparent;
   background: none;
   text-align: left;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease);
+  transition: background var(--dur-1) var(--ease-out);
+}
+.conv::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 var(--r-full) var(--r-full) 0;
+  background: var(--g-brand);
+  transform: scaleY(0);
+  transition: transform var(--dur-2) var(--ease-spring);
 }
 .conv:hover {
   background: var(--c-surface-2);
 }
 .conv[aria-selected="true"] {
-  background: var(--c-brand-soft);
-  border-left-color: var(--c-brand);
+  background: var(--g-brand-dim);
+}
+.conv[aria-selected="true"]::before {
+  transform: scaleY(1);
 }
 .conv-main {
   min-width: 0;
@@ -138,7 +195,7 @@
   gap: var(--s-2);
 }
 .conv-name {
-  font-weight: 650;
+  font-weight: 640;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -154,7 +211,7 @@
   display: flex;
   align-items: center;
   gap: var(--s-2);
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 /* --- Chat -------------------------------------------------------------- */
@@ -171,7 +228,9 @@
   align-items: center;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
-  background: var(--c-surface);
+  background: var(--c-glass);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--c-border);
   flex-shrink: 0;
 }
@@ -184,23 +243,25 @@
   display: flex;
   flex-direction: column;
   gap: var(--s-1);
+  scroll-behavior: smooth;
 }
 
 .day-sep {
   align-self: center;
-  margin: var(--s-3) 0;
-  padding: 3px var(--s-3);
+  margin: var(--s-4) 0 var(--s-3);
+  padding: 4px var(--s-3);
   border-radius: var(--r-full);
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   font-size: var(--t-xs);
   font-weight: 700;
   color: var(--c-text-2);
+  box-shadow: var(--sh-1);
 }
 
 .bubble {
   position: relative;
-  max-width: min(72%, 560px);
+  max-width: min(70%, 560px);
   padding: var(--s-2) var(--s-3);
   border-radius: var(--r-md);
   background: var(--c-bubble-in);
@@ -209,6 +270,8 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   align-self: flex-start;
+  animation: bubble-in var(--dur-2) var(--ease-out) both;
+  animation-delay: calc(min(var(--i, 0), 10) * 22ms);
 }
 .bubble--out {
   align-self: flex-end;
@@ -236,6 +299,31 @@
   font-weight: 700;
 }
 
+/* Shown while an agent reply is in flight. */
+.typing {
+  align-self: flex-end;
+  display: flex;
+  gap: 4px;
+  padding: var(--s-3);
+  border-radius: var(--r-md);
+  background: var(--c-bubble-out);
+  box-shadow: var(--sh-1);
+  animation: bubble-in var(--dur-2) var(--ease-out) both;
+}
+.typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: typing-bounce 1.15s var(--ease-in-out) infinite;
+}
+.typing i:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.typing i:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
 .composer {
   display: flex;
   gap: var(--s-2);
@@ -246,7 +334,7 @@
   flex-shrink: 0;
 }
 .composer .textarea {
-  min-height: 36px;
+  min-height: 38px;
   max-height: 140px;
   overflow-y: auto;
 }
@@ -283,9 +371,11 @@
 
 .passage {
   border: 1px solid var(--c-border);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
   background: var(--c-surface-2);
-  padding: var(--s-3);
+  padding: var(--s-4);
+  animation: rise-in var(--dur-3) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
 }
 .passage-head {
   display: flex;
@@ -301,4 +391,5 @@
   color: var(--c-text-2);
   max-height: 180px;
   overflow-y: auto;
+  line-height: 1.6;
 }

@@ -1,4 +1,5 @@
 import { h } from '../core/dom.js';
+import { countUp, nextFrame } from '../core/motion.js';
 import { icon } from './icon.js';
 
 /**
@@ -165,20 +166,34 @@ export function fieldError(message) {
   return h('span', { class: 'field-error', text: message, role: 'alert' });
 }
 
-export function statTile({ label, value, sub = null, meter = null }) {
-  return h(
+/**
+ * @param {{label: string, value: string, count?: number,
+ *          format?: (n: number) => string, sub?: string|null,
+ *          meter?: {percent: number, state: string}|null}} options
+ * Pass `count` to have the figure count up instead of appearing; the meter
+ * always fills from zero, which is why its width is set on the next frame
+ * rather than inline.
+ */
+export function statTile({ label, value, count = null, format = null, sub = null, meter = null }) {
+  const valueNode = h('div', { class: 'stat-value', text: value });
+  const meterFill = meter ? h('i') : null;
+
+  const node = h(
     'div',
     { class: 'stat' },
     h('div', { class: 'stat-label', text: label }),
-    h('div', { class: 'stat-value', text: value }),
-    meter &&
-      h(
-        'div',
-        { class: 'meter', dataset: { state: meter.state } },
-        h('i', { style: { width: `${Math.min(100, meter.percent)}%` } }),
-      ),
+    valueNode,
+    meterFill && h('div', { class: 'meter', dataset: { state: meter.state } }, meterFill),
     sub && h('div', { class: 'stat-sub', text: sub }),
   );
+
+  if (count !== null) countUp(valueNode, count, format ?? ((n) => String(n)));
+  if (meterFill) {
+    nextFrame(() => {
+      meterFill.style.width = `${Math.min(100, meter.percent)}%`;
+    });
+  }
+  return node;
 }
 
 /** Monospaced value with a copy button, used for freshly issued API keys. */

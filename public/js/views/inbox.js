@@ -7,6 +7,7 @@ import { icon } from '../components/icon.js';
 import { avatar } from '../components/avatar.js';
 import { badge, button, notice, searchInput, select, setLoading, textarea } from '../components/ui.js';
 import { emptyState, skeletonList } from '../components/feedback.js';
+import { typingIndicator } from '../core/motion.js';
 import {
   dayKey,
   fmtDayLabel,
@@ -113,13 +114,15 @@ export async function render() {
       return;
     }
 
-    mount(
-      convScroll,
-      list.map((conversation) =>
+    const listNode = h(
+      'div',
+      { class: 'stagger' },
+      list.map((conversation, index) =>
         h(
           'button',
           {
             class: 'conv',
+            style: { '--i': index },
             role: 'option',
             'aria-selected': conversation.id === store.activeConversationId ? 'true' : 'false',
             onClick: () => selectConversation(conversation.id),
@@ -150,6 +153,8 @@ export async function render() {
         ),
       ),
     );
+
+    mount(convScroll, listNode);
   }
 
   async function loadConversations(quiet = false) {
@@ -210,6 +215,8 @@ export async function render() {
     let lastDay = null;
     let lastSide = null;
     let lastAuthor = null;
+    // Drives the staggered entrance; capped in CSS so long threads stay quick.
+    let bubbleIndex = 0;
 
     for (const message of messages) {
       const currentDay = dayKey(message.created_at);
@@ -232,7 +239,10 @@ export async function render() {
       scroll.appendChild(
         h(
           'div',
-          { class: ['bubble', outbound && 'bubble--out', grouped && 'bubble--grouped'] },
+          {
+            class: ['bubble', outbound && 'bubble--out', grouped && 'bubble--grouped'],
+            style: { '--i': bubbleIndex++ },
+          },
           message.content,
           h(
             'div',
@@ -270,6 +280,16 @@ export async function render() {
       const text = box.value.trim();
       if (!text) return;
       setLoading(sendButton, true);
+
+      // Show the message as pending rather than leaving the thread frozen
+      // while the Graph API call is in flight.
+      const scroll = chatPane.querySelector('.chat-scroll');
+      const pending = typingIndicator();
+      if (scroll) {
+        scroll.appendChild(pending);
+        scroll.scrollTop = scroll.scrollHeight;
+      }
+
       try {
         await endpoints.sendMessage(store.tenantId, conversation.id, text);
         box.value = '';
@@ -277,6 +297,7 @@ export async function render() {
         await loadMessages(conversation.id);
         await loadConversations(true);
       } catch (error) {
+        pending.remove();
         toast(error.message, 'error');
       } finally {
         setLoading(sendButton, false);
