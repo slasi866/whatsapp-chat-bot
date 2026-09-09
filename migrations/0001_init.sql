@@ -32,7 +32,11 @@ CREATE TABLE documents (
   source        TEXT,
   content_hash  TEXT NOT NULL,
   chunk_count   INTEGER NOT NULL DEFAULT 0,
-  r2_key        TEXT,
+  -- The original text, kept so the document can be re-chunked later if the
+  -- chunking strategy changes. Chunks overlap, so they cannot be stitched
+  -- back into a faithful original. This lived in R2 until the platform was
+  -- pinned to the Cloudflare free plan, where R2 needs a payment method.
+  content       TEXT NOT NULL,
   created_at    INTEGER NOT NULL
 );
 CREATE INDEX idx_documents_tenant ON documents(tenant_id);

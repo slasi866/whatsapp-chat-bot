@@ -54,16 +54,12 @@ export async function ingestDocument(
   if (chunks.length === 0) throw new Error('Document has no indexable text');
 
   const documentId = newId('doc');
-  const r2Key = `${tenantId}/${documentId}.txt`;
-  await env.DOCS.put(r2Key, content, {
-    httpMetadata: { contentType: 'text/plain; charset=utf-8' },
-  });
 
   await env.DB.prepare(
-    `INSERT INTO documents (id, tenant_id, title, source, content_hash, chunk_count, r2_key, created_at)
+    `INSERT INTO documents (id, tenant_id, title, source, content_hash, chunk_count, content, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
   )
-    .bind(documentId, tenantId, title, source, contentHash, chunks.length, r2Key, nowSeconds())
+    .bind(documentId, tenantId, title, source, contentHash, chunks.length, content, nowSeconds())
     .run();
 
   // Each chunk is prefixed with its document title so the embedding carries
@@ -100,19 +96,17 @@ export async function deleteDocument(
   tenantId: string,
   documentId: string,
 ): Promise<boolean> {
-  const document = await env.DB.prepare(
-    'SELECT id, r2_key FROM documents WHERE id = ? AND tenant_id = ?',
-  )
+  const document = await env.DB.prepare('SELECT id FROM documents WHERE id = ? AND tenant_id = ?')
     .bind(documentId, tenantId)
-    .first<{ id: string; r2_key: string | null }>();
+    .first<{ id: string }>();
   if (!document) return false;
 
+  // Vectorize sits outside the D1 cascade, so its vectors go first.
   const chunks = await env.DB.prepare('SELECT id FROM chunks WHERE document_id = ?')
     .bind(documentId)
     .all<{ id: string }>();
   const ids = chunks.results.map((row) => row.id);
   if (ids.length) await env.VECTORIZE.deleteByIds(ids);
-  if (document.r2_key) await env.DOCS.delete(document.r2_key);
 
   // chunks rows cascade from the documents delete.
   await env.DB.prepare('DELETE FROM documents WHERE id = ?').bind(documentId).run();

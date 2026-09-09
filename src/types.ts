@@ -4,7 +4,6 @@ export interface Env {
   VECTORIZE: VectorizeIndex;
   AI: Ai;
   CACHE: KVNamespace;
-  DOCS: R2Bucket;
   INBOUND: Queue<InboundJob>;
 
   // Vars

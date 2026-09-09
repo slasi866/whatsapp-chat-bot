@@ -9,9 +9,6 @@ npx wrangler d1 create pesat-wa-bot || echo "(already exists)"
 echo "==> KV namespace"
 npx wrangler kv namespace create CACHE || echo "(already exists)"
 
-echo "==> R2 bucket"
-npx wrangler r2 bucket create pesat-wa-docs || echo "(already exists)"
-
 echo "==> Queues"
 npx wrangler queues create wa-inbound || echo "(already exists)"
 npx wrangler queues create wa-inbound-dlq || echo "(already exists)"

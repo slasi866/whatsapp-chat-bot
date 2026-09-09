@@ -7,7 +7,8 @@ knowledge base, persona, dan kuota sendiri.
 - **WhatsApp**: Meta Cloud API resmi (webhook based)
 - **Otak**: PesatRouter (`pesat-flash` / `pesat-pro` / `pesat-lite`) + RAG dari
   knowledge base per tenant
-- **Infra**: Cloudflare Workers, D1, Vectorize, Workers AI, KV, R2, Queues
+- **Infra**: Cloudflare Workers, D1, Vectorize, Workers AI, KV, Queues, semuanya
+  di free plan
 
 Endpoint model dipanggil lewat format OpenAI chat completions. Tidak ada SDK
 LLM di dependency, hanya `fetch` langsung, jadi provider bisa ditukar dengan
@@ -61,10 +62,27 @@ Ini produk multi-tenant, jadi batas antar client harus jelas:
 ### 1. Prasyarat
 
 - Node.js 20+
-- Akun Cloudflare dengan **Workers Paid plan** (5 USD/bulan). D1, Queues,
-  Vectorize, dan R2 tidak tersedia di free plan.
+- Akun Cloudflare dengan **email yang sudah diverifikasi**. Workers menolak
+  deploy sampai verifikasi email selesai, dengan error kode 10034.
 - Meta Business account + WhatsApp Business Platform app
 - API key PesatRouter
+
+Seluruh platform ini berjalan di **Cloudflare free plan**. Workers, static
+assets, D1, KV, Vectorize, Queues, dan Workers AI semuanya punya alokasi
+gratis. R2 sengaja tidak dipakai karena satu-satunya yang menuntut metode
+pembayaran, jadi teks asli dokumen disimpan di D1.
+
+Batas free plan yang paling mungkin tersentuh lebih dulu:
+
+| Layanan | Alokasi gratis |
+|---|---|
+| Workers | 100.000 request/hari |
+| Queues | 10.000 operasi/hari |
+| KV | 100.000 baca dan 1.000 tulis per hari |
+| Workers AI | alokasi Neuron harian, dipakai untuk embedding |
+
+Satu pesan masuk memakai beberapa operasi Queues, jadi batas 10.000 per hari
+adalah plafon praktis jumlah percakapan harian sebelum perlu upgrade.
 
 ### 2. Buat resource Cloudflare
 
@@ -74,7 +92,6 @@ npx wrangler login
 
 npx wrangler d1 create pesat-wa-bot
 npx wrangler kv namespace create CACHE
-npx wrangler r2 bucket create pesat-wa-docs
 npx wrangler queues create wa-inbound
 npx wrangler queues create wa-inbound-dlq
 npx wrangler vectorize create pesat-kb --dimensions=1024 --metric=cosine
