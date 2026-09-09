@@ -3,38 +3,426 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="robots" content="noindex, nofollow" />
+    <meta name="color-scheme" content="dark" />
+    <title>Pesat.ai · Chatbot WhatsApp untuk Company</title>
     <meta
       name="description"
-      content="Console untuk mengelola chatbot WhatsApp multi-tenant Pesat.ai."
+      content="Chatbot WhatsApp yang menjawab dari dokumen perusahaan Anda, menyerahkan percakapan ke agent saat perlu, dan berjalan di Meta Cloud API resmi."
     />
-    <title>Pesat.ai Console</title>
 
-    <!--
-      Layered stylesheets, loaded in cascade order: tokens define every value,
-      motion holds the keyframes, base sets document defaults, layout builds
-      the shell, components hold reusable primitives, and views cover the few
-      page-specific pieces.
-    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+    />
+
     <link rel="stylesheet" href="/css/tokens.css" />
     <link rel="stylesheet" href="/css/motion.css" />
     <link rel="stylesheet" href="/css/base.css" />
-    <link rel="stylesheet" href="/css/layout.css" />
-    <link rel="stylesheet" href="/css/components.css" />
-    <link rel="stylesheet" href="/css/views.css" />
+    <link rel="stylesheet" href="/css/landing.css" />
   </head>
-  <body>
-    <!-- The entire interface is built by the router into this node. -->
-    <div id="root"></div>
+  <body class="landing">
+    <!-- Icon sprite. Referenced with <use> so each glyph is defined once. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <g id="i-bot" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <rect x="4" y="8" width="16" height="12" rx="3" />
+          <path d="M12 8V4M8 14h.01M16 14h.01M9 18h6" />
+        </g>
+        <g id="i-user" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </g>
+        <g id="i-shield" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </g>
+        <g id="i-target" fill="none" stroke="currentColor" stroke-width="1.7">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="5" />
+          <circle cx="12" cy="12" r="1.5" />
+        </g>
+        <g id="i-chart" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </g>
+        <g id="i-check" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="m20 6-11 11-5-5" />
+        </g>
+        <g id="i-book" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </g>
+        <g id="i-plus" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14" />
+        </g>
+        <g id="i-zap" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </g>
+      </defs>
+    </svg>
 
-    <noscript>
-      <div style="padding: 24px">
-        Console ini membutuhkan JavaScript. Aktifkan JavaScript lalu muat ulang halaman.
+    <header class="site-head" id="site-head">
+      <div class="wrap site-head-inner">
+        <a class="logo" href="/">
+          <span class="logo-mark">P</span>
+          <span class="logo-text">Pesat.ai</span>
+        </a>
+        <nav class="site-nav">
+          <a href="#fitur">Fitur</a>
+          <a href="#cara-kerja">Cara kerja</a>
+          <a href="#harga">Harga</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <a class="lbtn lbtn--ghost" href="/app/">Masuk console</a>
       </div>
-    </noscript>
+    </header>
 
-    <!-- Native ES modules: no bundler, no build step. -->
-    <script type="module" src="/js/main.js"></script>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="ambient"><span></span><span></span><span></span></div>
+      <div class="orbit-ring"></div>
+
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><i class="dot"></i> Meta Cloud API resmi</span>
+          <h1 class="display">
+            Chatbot WhatsApp yang menjawab dari dokumen perusahaan Anda
+          </h1>
+          <p class="section-lead">
+            Pasang knowledge base perusahaan, bot menjawab pertanyaan customer dari isi dokumen itu
+            saja. Kalau pertanyaannya di luar jangkauan, percakapan diserahkan ke agent manusia,
+            bukan dijawab ngawur.
+          </p>
+          <div class="hero-cta">
+            <a class="lbtn lbtn--primary" href="/app/">Buka console</a>
+            <a class="lbtn lbtn--ghost" href="#cara-kerja">Lihat cara kerjanya</a>
+          </div>
+          <p class="hero-note">
+            Satu deployment melayani banyak company. Data dan knowledge base tiap client terpisah.
+          </p>
+        </div>
+
+        <!-- Looping demo conversation, driven by landing.js -->
+        <div class="phone" aria-hidden="true">
+          <div class="phone-screen">
+            <div class="phone-bar">
+              <span class="avatar" style="background: linear-gradient(135deg, #0d9276, #0b8ba3)">
+                TS
+              </span>
+              <span class="who">
+                <span class="name">Toko Sinar Jaya</span>
+                <span class="state" id="demo-state">online</span>
+              </span>
+            </div>
+            <div class="phone-body" id="demo-body"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Capability strip -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="marquee-track">
+        <!-- Duplicated by landing.js so the loop has no visible seam. -->
+      </div>
+    </div>
+
+    <!-- Features -->
+    <section class="section" id="fitur">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow"><i class="dot"></i> Fitur</span>
+          <h2>Dibangun untuk dijual ke company, bukan demo</h2>
+          <p class="section-lead">
+            Yang membedakan produk yang bisa ditagih dari mainan adalah apa yang terjadi ketika bot
+            tidak tahu jawabannya.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature reveal" style="--i: 0">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-book"/></svg></div>
+            <h3>Jawaban terkunci ke dokumen</h3>
+            <p>
+              Harga, stok, jadwal kirim, dan kebijakan hanya diambil dari knowledge base. Bot
+              dilarang mengarang fakta yang jadi dasar keputusan customer.
+            </p>
+          </article>
+
+          <article class="feature reveal" style="--i: 1">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-user"/></svg></div>
+            <h3>Ambil alih oleh agent</h3>
+            <p>
+              Saat customer minta orang atau ada masalah pembayaran, bot menyerahkan percakapan,
+              memberi tahu nomor agent, lalu diam sampai dilepaskan kembali.
+            </p>
+          </article>
+
+          <article class="feature reveal" style="--i: 2">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-shield"/></svg></div>
+            <h3>Terpisah per company</h3>
+            <p>
+              Tiap client punya nomor, knowledge base, dan kunci akses sendiri. Bot satu client
+              tidak bisa menjawab dari dokumen client lain.
+            </p>
+          </article>
+
+          <article class="feature reveal" style="--i: 3">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-target"/></svg></div>
+            <h3>Lead tercatat sendiri</h3>
+            <p>
+              Begitu customer menyebut nama bersama kontak atau minat pada produk tertentu, datanya
+              masuk ke daftar lead tanpa agent perlu mencatat manual.
+            </p>
+          </article>
+
+          <article class="feature reveal" style="--i: 4">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-chart"/></svg></div>
+            <h3>Kuota dan token terukur</h3>
+            <p>
+              Pemakaian pesan dan token dicatat per hari dan per bulan, jadi biaya per balasan bisa
+              dihitung dari angka sungguhan, bukan perkiraan.
+            </p>
+          </article>
+
+          <article class="feature reveal" style="--i: 5">
+            <div class="feature-icon"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#i-zap"/></svg></div>
+            <h3>Jendela 24 jam dijaga</h3>
+            <p>
+              WhatsApp hanya mengizinkan balasan bebas dalam 24 jam sejak pesan customer. Console
+              mengunci kolom balasan di luar jendela itu dan memberi tahu alasannya.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <section class="section" id="cara-kerja">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow"><i class="dot"></i> Cara kerja</span>
+          <h2>Empat langkah dari nol sampai melayani</h2>
+        </div>
+
+        <div class="steps">
+          <div class="step reveal" style="--i: 0">
+            <h3>Sambungkan nomor</h3>
+            <p>
+              Masukkan phone number ID dan access token WhatsApp Business milik client. Token
+              disimpan terenkripsi, tidak pernah bisa dibaca kembali.
+            </p>
+          </div>
+          <div class="step reveal" style="--i: 1">
+            <h3>Unggah dokumen</h3>
+            <p>
+              Tempel daftar harga, FAQ, kebijakan pengembalian, dan jam operasional. Semuanya
+              dipotong dan diindeks otomatis.
+            </p>
+          </div>
+          <div class="step reveal" style="--i: 2">
+            <h3>Uji retrieval</h3>
+            <p>
+              Ketik pertanyaan yang biasa ditanya customer, lihat passage mana yang akan dibaca bot
+              beserta skornya, sebelum ada customer sungguhan.
+            </p>
+          </div>
+          <div class="step reveal" style="--i: 3">
+            <h3>Pantau dari inbox</h3>
+            <p>
+              Semua percakapan masuk ke satu inbox. Agent bisa membaca transkrip, ambil alih, dan
+              membalas langsung dari console.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section">
+      <div class="wrap">
+        <div class="stats-row">
+          <div class="stat-big reveal" style="--i: 0">
+            <div class="figure" data-count="3" data-suffix=" model">0</div>
+            <p class="caption">Pilihan model per client, bisa berbeda tiap paket tanpa ubah kode.</p>
+          </div>
+          <div class="stat-big reveal" style="--i: 1">
+            <div class="figure" data-count="5" data-suffix=" detik">0</div>
+            <p class="caption">Inbox agent menyegarkan percakapan aktif, tanpa perlu muat ulang.</p>
+          </div>
+          <div class="stat-big reveal" style="--i: 2">
+            <div class="figure" data-count="24" data-suffix=" jam">0</div>
+            <p class="caption">Jendela balasan WhatsApp dilacak otomatis per percakapan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section" id="harga">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow"><i class="dot"></i> Harga</span>
+          <h2>Paket mengikuti jumlah pesan per bulan</h2>
+          <p class="section-lead">
+            Kuota dihitung per bulan kalender. Saat kuota habis bot berhenti menjawab dan mengirim
+            pesan cadangan, jadi tidak ada tagihan yang membengkak diam-diam.
+          </p>
+        </div>
+
+        <div class="plans">
+          <div class="plan reveal" style="--i: 0">
+            <div class="plan-name">Starter</div>
+            <div class="plan-price">Hubungi kami</div>
+            <div class="plan-quota">1.000 pesan per bulan</div>
+            <ul>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Satu nomor WhatsApp</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Knowledge base tanpa batas dokumen</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Inbox dan ambil alih agent</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Laporan pemakaian harian</li>
+            </ul>
+            <a class="lbtn lbtn--ghost" href="#kontak" style="width: 100%">Tanya paket ini</a>
+          </div>
+
+          <div class="plan plan--featured reveal" style="--i: 1">
+            <span class="plan-tag">Paling banyak dipakai</span>
+            <div class="plan-name">Growth</div>
+            <div class="plan-price">Hubungi kami</div>
+            <div class="plan-quota">5.000 pesan per bulan</div>
+            <ul>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Semua yang ada di Starter</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Model lebih kuat untuk pertanyaan rumit</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Notifikasi eskalasi ke nomor agent</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Penangkapan lead otomatis</li>
+            </ul>
+            <a class="lbtn lbtn--primary" href="#kontak" style="width: 100%">Tanya paket ini</a>
+          </div>
+
+          <div class="plan reveal" style="--i: 2">
+            <div class="plan-name">Scale</div>
+            <div class="plan-price">Hubungi kami</div>
+            <div class="plan-quota">25.000 pesan per bulan</div>
+            <ul>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Semua yang ada di Growth</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Kuota dan model bisa disesuaikan</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Persona bot diatur per kebutuhan</li>
+              <li><svg width="15" height="15" viewBox="0 0 24 24" class="icon"><use href="#i-check"/></svg> Akses dashboard untuk tim client</li>
+            </ul>
+            <a class="lbtn lbtn--ghost" href="#kontak" style="width: 100%">Tanya paket ini</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <span class="eyebrow"><i class="dot"></i> FAQ</span>
+          <h2>Pertanyaan yang paling sering masuk</h2>
+        </div>
+
+        <div class="faq reveal">
+          <details>
+            <summary>
+              Apakah nomor WhatsApp saya yang sekarang bisa dipakai?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              Bisa, tetapi nomor yang didaftarkan ke WhatsApp Cloud API harus dilepas dari aplikasi
+              WhatsApp biasa. Setelah terdaftar, nomor itu tidak bisa lagi dipakai chat pribadi di
+              HP. Sebaiknya siapkan nomor khusus untuk bisnis.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Kalau bot tidak tahu jawabannya, apa yang terjadi?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              Bot mengaku tidak punya informasinya lalu menawarkan agent manusia. Ia tidak
+              diizinkan menebak harga, stok, atau kebijakan. Percakapannya pindah ke status agent
+              dan nomor agent Anda mendapat notifikasi.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Apakah data antar client bisa tercampur?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              Tidak. Pesan masuk dirutekan berdasarkan nomor WhatsApp, pencarian knowledge base
+              selalu difilter per client, dan kunci akses tiap client hanya membuka datanya
+              sendiri.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Dokumen apa saja yang bisa dimasukkan?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              Saat ini teks biasa, misalnya daftar harga, FAQ, kebijakan pengembalian, jam
+              operasional, dan area pengiriman. PDF dan DOCX perlu diubah ke teks lebih dulu.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Bisakah agent membalas manual kapan saja?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              Bisa, lewat inbox di console. Begitu agent menekan ambil alih, bot berhenti menjawab
+              percakapan itu sampai dilepaskan kembali, jadi customer tidak menerima dua jawaban.
+            </p>
+          </details>
+
+          <details>
+            <summary>
+              Bagaimana kalau customer mengirim pesan lewat dari 24 jam?
+              <svg width="18" height="18" viewBox="0 0 24 24" class="chev"><use href="#i-plus"/></svg>
+            </summary>
+            <p class="answer">
+              WhatsApp melarang balasan teks bebas di luar jendela 24 jam sejak pesan terakhir
+              customer. Console mengunci kolom balasan dan menjelaskan bahwa yang dibutuhkan adalah
+              template yang sudah disetujui Meta.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Closing CTA -->
+    <section class="section" id="kontak">
+      <div class="wrap">
+        <div class="cta-panel reveal">
+          <span class="eyebrow"><i class="dot"></i> Siap dicoba</span>
+          <h2>Buat tenant pertama dalam beberapa menit</h2>
+          <p class="section-lead">
+            Masuk ke console, buat company, tempel dokumennya, lalu uji apa yang akan dibaca bot
+            sebelum customer pertama datang.
+          </p>
+          <div class="hero-cta">
+            <a class="lbtn lbtn--primary" href="/app/">Buka console</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-foot">
+      <div class="wrap site-foot-inner">
+        <span class="logo">
+          <span class="logo-mark">P</span>
+          <span class="logo-text">Pesat.ai</span>
+        </span>
+        <span class="push">Chatbot WhatsApp untuk company</span>
+      </div>
+    </footer>
+
+    <script type="module" src="/js/landing.js"></script>
   </body>
 </html>

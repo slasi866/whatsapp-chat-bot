@@ -1,0 +1,797 @@
+/**
+ * Landing page.
+ *
+ * Deliberately dark in both system themes. A marketing page should commit to
+ * one look rather than ship a washed-out light variant nobody art-directed,
+ * so the palette is scoped here instead of following the console's tokens.
+ */
+
+.landing {
+  --l-bg: #050809;
+  --l-bg-2: #080d10;
+  --l-surface: rgba(255, 255, 255, 0.032);
+  --l-surface-2: rgba(255, 255, 255, 0.055);
+  --l-border: rgba(255, 255, 255, 0.085);
+  --l-border-strong: rgba(255, 255, 255, 0.16);
+  --l-text: #f2f7f8;
+  --l-text-2: rgba(242, 247, 248, 0.66);
+  --l-text-3: rgba(242, 247, 248, 0.42);
+  --l-accent: #2dd4aa;
+  --l-accent-2: #38bdf8;
+  --l-grad: linear-gradient(135deg, #2dd4aa 0%, #38bdf8 100%);
+
+  background: var(--l-bg);
+  color: var(--l-text);
+  overflow-x: hidden;
+}
+
+.landing ::selection {
+  background: rgba(45, 212, 170, 0.28);
+  color: #fff;
+}
+
+/**
+ * Brand lockup and avatar are redefined here rather than pulled in from the
+ * console's layout and component sheets, so this page stays self-contained on
+ * top of tokens, motion, and base.
+ */
+.landing .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  color: var(--l-text);
+}
+.landing .logo:hover {
+  text-decoration: none;
+}
+.landing .logo-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: var(--r-sm);
+  background: var(--l-grad);
+  color: #04231c;
+  font-weight: 750;
+  font-size: var(--t-md);
+  letter-spacing: -0.03em;
+}
+.landing .logo-text {
+  font-weight: 620;
+  font-size: 17px;
+  letter-spacing: var(--track-tight);
+}
+.landing .avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--r-md);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0;
+}
+
+/* --- Rhythm ------------------------------------------------------------ */
+
+.wrap {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 var(--s-6);
+}
+
+.section {
+  position: relative;
+  padding: 108px 0;
+}
+.section + .section {
+  border-top: 1px solid var(--l-border);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 5px 12px 5px 8px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--l-border-strong);
+  background: var(--l-surface);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--l-text-2);
+  letter-spacing: 0;
+}
+.eyebrow .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--l-accent);
+  box-shadow: 0 0 0 3px rgba(45, 212, 170, 0.18);
+}
+
+.display {
+  font-size: clamp(38px, 6.4vw, var(--t-5xl));
+  line-height: 1.02;
+  letter-spacing: var(--track-display);
+  font-weight: 620;
+  margin: var(--s-5) 0 0;
+  text-wrap: balance;
+}
+
+.section-lead {
+  margin-top: var(--s-5);
+  font-size: clamp(15px, 1.5vw, 19px);
+  line-height: 1.6;
+  color: var(--l-text-2);
+  max-width: 58ch;
+  letter-spacing: -0.008em;
+}
+
+.section-head {
+  max-width: 720px;
+  margin-bottom: var(--s-8);
+}
+.section-head h2 {
+  font-size: clamp(28px, 3.6vw, var(--t-4xl));
+  line-height: 1.08;
+  letter-spacing: var(--track-display);
+  font-weight: 620;
+  margin-top: var(--s-4);
+}
+
+/* --- Buttons ----------------------------------------------------------- */
+
+.lbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: 46px;
+  padding: 0 var(--s-6);
+  border-radius: var(--r-full);
+  border: 1px solid transparent;
+  font-size: var(--t-lg);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    background var(--dur-2) var(--ease-out);
+}
+.lbtn--primary {
+  background: var(--l-grad);
+  color: #04231c;
+  box-shadow: 0 6px 24px rgba(45, 212, 170, 0.28);
+}
+.lbtn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(45, 212, 170, 0.36);
+  text-decoration: none;
+}
+.lbtn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-140%);
+}
+.lbtn--primary:hover::after {
+  animation: sheen 700ms var(--ease-out);
+}
+.lbtn--ghost {
+  background: var(--l-surface);
+  border-color: var(--l-border-strong);
+  color: var(--l-text);
+}
+.lbtn--ghost:hover {
+  background: var(--l-surface-2);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+/* --- Site header ------------------------------------------------------- */
+
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  transition:
+    background var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out);
+}
+/* Only frosts once the page has actually scrolled, set by landing.js. */
+.site-head[data-stuck="true"] {
+  background: rgba(5, 8, 9, 0.72);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  border-bottom-color: var(--l-border);
+}
+.site-head-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  height: 68px;
+}
+.site-nav {
+  display: flex;
+  gap: var(--s-5);
+  margin-left: auto;
+}
+.site-nav a {
+  color: var(--l-text-2);
+  font-weight: 550;
+  font-size: var(--t-lg);
+}
+.site-nav a:hover {
+  color: var(--l-text);
+  text-decoration: none;
+}
+
+/* --- Hero -------------------------------------------------------------- */
+
+.hero {
+  position: relative;
+  padding: 84px 0 96px;
+  isolation: isolate;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.06fr 0.94fr;
+  gap: var(--s-8);
+  align-items: center;
+}
+
+.hero-cta {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-7);
+  flex-wrap: wrap;
+}
+
+.hero-note {
+  margin-top: var(--s-5);
+  font-size: var(--t-sm);
+  color: var(--l-text-3);
+}
+
+/* Ambient field. Sits behind everything and never intercepts a click. */
+.ambient {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 780px;
+  z-index: -1;
+  pointer-events: none;
+}
+.ambient span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(96px);
+  opacity: 0.4;
+}
+.ambient span:nth-child(1) {
+  width: 460px;
+  height: 460px;
+  top: 6%;
+  left: 2%;
+  background: #0f9e7a;
+  animation: float-slow 15s var(--ease-in-out) infinite;
+}
+.ambient span:nth-child(2) {
+  width: 380px;
+  height: 380px;
+  top: 26%;
+  right: 6%;
+  background: #0b7fa8;
+  animation: float-fast 11s var(--ease-in-out) infinite;
+}
+.ambient span:nth-child(3) {
+  width: 300px;
+  height: 300px;
+  bottom: 0;
+  left: 38%;
+  background: #146c8c;
+  opacity: 0.26;
+  animation: float-slow 19s var(--ease-in-out) infinite reverse;
+}
+
+/* Thin rotating ring, the only literal "orbit" on the page. */
+.orbit-ring {
+  position: absolute;
+  top: 50%;
+  right: -160px;
+  width: 620px;
+  height: 620px;
+  margin-top: -310px;
+  border: 1px solid var(--l-border);
+  border-radius: 50%;
+  z-index: -1;
+  animation: orbit 46s linear infinite;
+}
+.orbit-ring::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--l-accent);
+  box-shadow: 0 0 18px 3px rgba(45, 212, 170, 0.6);
+}
+
+/* --- Phone mockup ------------------------------------------------------ */
+
+.phone {
+  width: min(340px, 100%);
+  margin-left: auto;
+  border-radius: 38px;
+  border: 1px solid var(--l-border-strong);
+  background: #0b1114;
+  padding: 10px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 30px 70px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: float-slow 9s var(--ease-in-out) infinite;
+}
+.phone-screen {
+  border-radius: 29px;
+  overflow: hidden;
+  background: #0d1418;
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+.phone-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: rgba(255, 255, 255, 0.045);
+  border-bottom: 1px solid var(--l-border);
+}
+.phone-bar .who {
+  min-width: 0;
+}
+.phone-bar .name {
+  font-weight: 620;
+  font-size: var(--t-lg);
+  letter-spacing: -0.014em;
+}
+.phone-bar .state {
+  font-size: var(--t-xs);
+  color: var(--l-accent);
+}
+.phone-body {
+  flex: 1;
+  overflow: hidden;
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  justify-content: flex-end;
+}
+.msg {
+  max-width: 84%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: var(--t-lg);
+  line-height: 1.45;
+  letter-spacing: -0.006em;
+  animation: bubble-in var(--dur-3) var(--ease-out) both;
+  white-space: pre-wrap;
+}
+.msg--in {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.07);
+  border-bottom-left-radius: 5px;
+}
+.msg--out {
+  align-self: flex-end;
+  background: #10513c;
+  border-bottom-right-radius: 5px;
+}
+.msg-dots {
+  align-self: flex-end;
+  display: flex;
+  gap: 4px;
+  padding: 11px 13px;
+  border-radius: 14px;
+  background: #10513c;
+  animation: bubble-in var(--dur-2) var(--ease-out) both;
+}
+.msg-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  animation: typing-bounce 1.15s var(--ease-in-out) infinite;
+}
+.msg-dots i:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.msg-dots i:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+/* --- Marquee ----------------------------------------------------------- */
+
+.marquee {
+  overflow: hidden;
+  padding: var(--s-6) 0;
+  border-top: 1px solid var(--l-border);
+  border-bottom: 1px solid var(--l-border);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  gap: var(--s-8);
+  animation: marquee 34s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--l-text-3);
+  font-size: var(--t-lg);
+  font-weight: 550;
+  white-space: nowrap;
+}
+.marquee-item .icon {
+  color: var(--l-accent);
+  opacity: 0.75;
+}
+
+/* --- Feature cards ----------------------------------------------------- */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(288px, 1fr));
+  gap: var(--s-4);
+}
+
+.feature {
+  position: relative;
+  padding: var(--s-6);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--l-border);
+  background: var(--l-surface);
+  overflow: hidden;
+  transition:
+    transform var(--dur-3) var(--ease-out),
+    border-color var(--dur-3) var(--ease-out),
+    background var(--dur-3) var(--ease-out);
+}
+.feature:hover {
+  transform: translateY(-4px);
+  border-color: var(--l-border-strong);
+  background: var(--l-surface-2);
+}
+/* Gradient wash that lifts in from the bottom on hover. */
+.feature::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 120px;
+  background: linear-gradient(0deg, rgba(45, 212, 170, 0.09), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+}
+.feature:hover::before {
+  opacity: 1;
+}
+.feature-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-md);
+  background: var(--l-surface-2);
+  border: 1px solid var(--l-border);
+  color: var(--l-accent);
+  margin-bottom: var(--s-4);
+}
+.feature h3 {
+  font-size: 17px;
+  letter-spacing: var(--track-tight);
+  font-weight: 620;
+}
+.feature p {
+  margin-top: var(--s-2);
+  color: var(--l-text-2);
+  font-size: var(--t-lg);
+  line-height: 1.55;
+}
+
+/* --- Steps ------------------------------------------------------------- */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--s-6);
+  counter-reset: step;
+}
+.step {
+  position: relative;
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--l-border);
+}
+.step::before {
+  counter-increment: step;
+  content: counter(step, decimal-leading-zero);
+  font-family: var(--f-mono);
+  font-size: var(--t-sm);
+  color: var(--l-accent);
+  letter-spacing: 0.04em;
+}
+.step h3 {
+  margin-top: var(--s-3);
+  font-size: 18px;
+  letter-spacing: var(--track-tight);
+  font-weight: 620;
+}
+.step p {
+  margin-top: var(--s-2);
+  color: var(--l-text-2);
+  font-size: var(--t-lg);
+  line-height: 1.55;
+}
+
+/* --- Stats ------------------------------------------------------------- */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--s-6);
+}
+.stat-big .figure {
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 640;
+  letter-spacing: var(--track-display);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: var(--l-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.stat-big .caption {
+  margin-top: var(--s-3);
+  color: var(--l-text-2);
+  font-size: var(--t-lg);
+  line-height: 1.5;
+}
+
+/* --- Pricing ----------------------------------------------------------- */
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: var(--s-4);
+  align-items: start;
+}
+
+.plan {
+  position: relative;
+  padding: var(--s-6);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--l-border);
+  background: var(--l-surface);
+  transition:
+    transform var(--dur-3) var(--ease-out),
+    border-color var(--dur-3) var(--ease-out);
+}
+.plan:hover {
+  transform: translateY(-4px);
+  border-color: var(--l-border-strong);
+}
+.plan--featured {
+  border-color: rgba(45, 212, 170, 0.4);
+  background: linear-gradient(180deg, rgba(45, 212, 170, 0.07), var(--l-surface));
+  box-shadow: 0 20px 60px rgba(45, 212, 170, 0.09);
+}
+.plan-tag {
+  position: absolute;
+  top: -11px;
+  left: var(--s-6);
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  background: var(--l-grad);
+  color: #04231c;
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.plan-name {
+  font-size: var(--t-lg);
+  font-weight: 640;
+  letter-spacing: var(--track-tight);
+}
+.plan-price {
+  margin-top: var(--s-3);
+  font-size: 34px;
+  font-weight: 640;
+  letter-spacing: var(--track-display);
+  line-height: 1;
+}
+.plan-price small {
+  font-size: var(--t-lg);
+  font-weight: 500;
+  color: var(--l-text-3);
+  letter-spacing: -0.01em;
+}
+.plan-quota {
+  margin-top: var(--s-2);
+  color: var(--l-text-2);
+  font-size: var(--t-lg);
+}
+.plan ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--s-5) 0 var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.plan li {
+  display: flex;
+  gap: var(--s-2);
+  align-items: flex-start;
+  font-size: var(--t-lg);
+  color: var(--l-text-2);
+  line-height: 1.45;
+}
+.plan li .icon {
+  flex: 0 0 15px;
+  margin-top: 3px;
+  color: var(--l-accent);
+}
+
+/* --- FAQ --------------------------------------------------------------- */
+
+.faq {
+  max-width: 800px;
+}
+.faq details {
+  border-bottom: 1px solid var(--l-border);
+  padding: var(--s-5) 0;
+}
+.faq summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
+  transition: color var(--dur-1) var(--ease-out);
+}
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+.faq summary:hover {
+  color: var(--l-accent);
+}
+.faq summary .chev {
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+.faq details[open] summary .chev {
+  transform: rotate(45deg);
+}
+.faq .answer {
+  margin-top: var(--s-3);
+  color: var(--l-text-2);
+  font-size: var(--t-lg);
+  line-height: 1.62;
+  max-width: 70ch;
+  animation: drop-in var(--dur-2) var(--ease-out) both;
+}
+
+/* --- Closing CTA ------------------------------------------------------- */
+
+.cta-panel {
+  position: relative;
+  padding: 76px var(--s-6);
+  border-radius: var(--r-xl);
+  border: 1px solid rgba(45, 212, 170, 0.24);
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgba(45, 212, 170, 0.14), transparent 62%),
+    var(--l-surface);
+  text-align: center;
+  overflow: hidden;
+}
+.cta-panel h2 {
+  font-size: clamp(26px, 3.4vw, 42px);
+  letter-spacing: var(--track-display);
+  line-height: 1.08;
+  font-weight: 620;
+  max-width: 22ch;
+  margin: 0 auto;
+}
+.cta-panel .section-lead {
+  margin-left: auto;
+  margin-right: auto;
+}
+.cta-panel .hero-cta {
+  justify-content: center;
+}
+
+/* --- Footer ------------------------------------------------------------ */
+
+.site-foot {
+  padding: var(--s-7) 0;
+  border-top: 1px solid var(--l-border);
+  color: var(--l-text-3);
+  font-size: var(--t-lg);
+}
+.site-foot-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+
+/* --- Scroll reveal ----------------------------------------------------- */
+
+/* Set by landing.js only when IntersectionObserver is available, so without
+   it every section simply renders in place. */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity var(--dur-4) var(--ease-out),
+    transform var(--dur-4) var(--ease-out);
+  transition-delay: calc(min(var(--i, 0), 6) * 70ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Responsive -------------------------------------------------------- */
+
+@media (max-width: 940px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .phone {
+    margin: var(--s-6) auto 0;
+  }
+  .orbit-ring {
+    display: none;
+  }
+  .site-nav {
+    display: none;
+  }
+  .section {
+    padding: 76px 0;
+  }
+  .hero {
+    padding: 56px 0 72px;
+  }
+}

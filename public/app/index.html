@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="Console untuk mengelola chatbot WhatsApp multi-tenant Pesat.ai."
+    />
+    <title>Pesat.ai Console</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap"
+    />
+
+    <!--
+      Layered stylesheets, loaded in cascade order: tokens define every value,
+      motion holds the keyframes, base sets document defaults, layout builds
+      the shell, components hold reusable primitives, and views cover the few
+      page-specific pieces.
+    -->
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/motion.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/views.css" />
+  </head>
+  <body>
+    <!-- The entire interface is built by the router into this node. -->
+    <div id="root"></div>
+
+    <noscript>
+      <div style="padding: 24px">
+        Console ini membutuhkan JavaScript. Aktifkan JavaScript lalu muat ulang halaman.
+      </div>
+    </noscript>
+
+    <!-- Native ES modules: no bundler, no build step. -->
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>

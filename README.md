@@ -149,7 +149,8 @@ npm run deploy
 Deployment yang sedang berjalan:
 
 ```
-https://pesat-wa-bot.pesat-wa-bot1.workers.dev
+landing page   https://pesat-wa-bot.pesat-wa-bot1.workers.dev/
+console        https://pesat-wa-bot.pesat-wa-bot1.workers.dev/app/
 ```
 
 ### 7. Hubungkan Meta webhook
@@ -238,10 +239,27 @@ curl -X POST https://<worker>/api/tenants/<tenantId>/search \
 
 ---
 
-## Dashboard
+## Landing page
 
-Buka root Worker di browser, misalnya
-`https://pesat-wa-bot.pesat-wa-bot1.workers.dev/`. Dashboard disajikan sebagai
+Root Worker menyajikan halaman jualan produk, terpisah dari console. Isinya
+hero dengan demo percakapan WhatsApp yang berjalan sendiri sampai adegan
+penyerahan ke agent, daftar fitur, cara kerja, harga, dan FAQ.
+
+Halaman ini sengaja gelap di kedua tema sistem, karena halaman pemasaran
+sebaiknya berkomitmen pada satu tampilan. Paletnya didefinisikan di dalam
+`landing.css` sendiri, jadi tidak mengikuti token console yang bisa berbalik
+terang.
+
+**Harga masih `Hubungi kami`.** Angkanya belum ditetapkan, dan menerbitkan
+harga karangan di halaman publik bisa menyesatkan calon client. Kuota tiap
+paket sudah benar dan cocok dengan yang ditegakkan di kode: 1.000, 5.000, dan
+25.000 pesan per bulan. Ganti di bagian `id="harga"` pada `public/index.html`
+begitu harganya diputuskan.
+
+## Console
+
+Console ada di `/app/`, misalnya
+`https://pesat-wa-bot.pesat-wa-bot1.workers.dev/app/`. Ia disajikan sebagai
 static asset oleh Worker yang sama, jadi satu origin dengan `/api` dan tidak
 perlu hosting maupun CORS.
 
@@ -291,20 +309,25 @@ sah tidak ada data yang bisa dibaca.
 
 ```
 public/
-  index.html            hanya shell, seluruh UI dibangun router
+  index.html            landing page, halaman jualan di /
+  app/index.html        shell console di /app/, UI dibangun router
   css/
-    tokens.css          semua warna, spasi, radius, shadow, motion
+    tokens.css          semua warna, spasi, radius, tipografi, motion
+    motion.css          keyframes dan kelas animasi
     base.css            reset, tipografi, focus ring, utilitas
     layout.css          app shell, topbar, sidebar, drawer mobile
     components.css      button, field, card, table, badge, modal, toast, skeleton
-    views.css           yang khusus satu halaman saja
+    views.css           yang khusus satu halaman console
+    landing.css         landing page, palet gelapnya sendiri
   js/
-    main.js             bootstrap, guard peran, dispatch route
+    main.js             bootstrap console, guard peran, dispatch route
+    landing.js          landing page, tidak menyentuh API sama sekali
     core/
       dom.js            pembangun elemen
       api.js            klien HTTP dan daftar endpoint
       store.js          state sesi dan tampilan
       router.js         hash router plus teardown polling
+      motion.js         stagger, hitung angka, transisi view, titik mengetik
       format.js         tanggal, angka, jendela 24 jam, warna avatar
       toast.js          notifikasi
       modal.js          dialog dengan focus trap
