@@ -149,15 +149,15 @@ npm run deploy
 Deployment yang sedang berjalan:
 
 ```
-landing page   https://pesat-wa-bot.pesat-wa-bot1.workers.dev/
-console        https://pesat-wa-bot.pesat-wa-bot1.workers.dev/app/
+landing page   https://pesat-wa-bot.pesat-wa-bot.workers.dev/
+console        https://pesat-wa-bot.pesat-wa-bot.workers.dev/app/
 ```
 
 ### 7. Hubungkan Meta webhook
 
 Di Meta App Dashboard, WhatsApp > Configuration:
 
-- Callback URL: `https://pesat-wa-bot.pesat-wa-bot1.workers.dev/webhook/whatsapp`
+- Callback URL: `https://pesat-wa-bot.pesat-wa-bot.workers.dev/webhook/whatsapp`
 - Verify token: nilai `META_VERIFY_TOKEN` di langkah 4
 - Subscribe ke field **messages**
 
@@ -259,7 +259,7 @@ begitu harganya diputuskan.
 ## Console
 
 Console ada di `/app/`, misalnya
-`https://pesat-wa-bot.pesat-wa-bot1.workers.dev/app/`. Ia disajikan sebagai
+`https://pesat-wa-bot.pesat-wa-bot.workers.dev/app/`. Ia disajikan sebagai
 static asset oleh Worker yang sama, jadi satu origin dengan `/api` dan tidak
 perlu hosting maupun CORS.
 
